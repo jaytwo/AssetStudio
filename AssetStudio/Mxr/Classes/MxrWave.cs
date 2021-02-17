@@ -1,4 +1,6 @@
-﻿namespace AssetStudio.Mxr.Classes
+﻿using System.Collections.Generic;
+
+namespace AssetStudio.Mxr.Classes
 {
     enum WaveField
     {
@@ -6,7 +8,7 @@
         UnknownByte = 131
     }
 
-    class MxrWave : MxrNamedObject<WaveField>
+    class MxrWave : MxrNamedObject
     {
         private const int WAVE_FORMAT_PCM = 0x0001;
         private const int WAVE_FORMAT_DVI_ADPCM = 0x0011;
@@ -14,7 +16,10 @@
         public MxrWave(ObjectReader objectReader)
             : base(objectReader, ClassIDType.AudioClip) { }
 
-        protected override void Read(ObjectReader objectReader, WaveField field)
+        protected override void Read(ObjectReader objectReader) =>
+            Read<WaveField>(objectReader, ReadField);
+
+        private void ReadField(ObjectReader objectReader, Dictionary<WaveField, int> fieldValues, WaveField field)
         {
             switch (field)
             {
@@ -41,11 +46,11 @@
                     break;
 
                 case WaveField.UnknownByte:
-                    _fieldValues.Add(field, objectReader.ReadByte());
+                    fieldValues.Add(field, objectReader.ReadByte());
                     break;
 
                 default:
-                    _fieldValues.Add(field, objectReader.ReadInt32());
+                    fieldValues.Add(field, objectReader.ReadInt32());
                     break;
             }
         }

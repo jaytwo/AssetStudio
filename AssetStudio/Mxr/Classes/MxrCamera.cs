@@ -1,4 +1,6 @@
-﻿namespace AssetStudio.Mxr.Classes
+﻿using System.Collections.Generic;
+
+namespace AssetStudio.Mxr.Classes
 {
     enum CameraField
     {
@@ -15,12 +17,15 @@
         Angle = 38
     }
 
-    class MxrCamera : MxrNamedObject<CameraField>
+    class MxrCamera : MxrNamedObject
     {
         public MxrCamera(ObjectReader objectReader)
             : base(objectReader, ClassIDType.Camera) { }
 
-        protected override void Read(ObjectReader objectReader, CameraField field)
+        protected override void Read(ObjectReader objectReader) =>
+            Read<CameraField>(objectReader, ReadField);
+
+        private void ReadField(ObjectReader objectReader, Dictionary<CameraField, int> fieldValues, CameraField field)
         {
             object value;
             

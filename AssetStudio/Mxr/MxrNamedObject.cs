@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace AssetStudio.Mxr
@@ -48,5 +50,30 @@ namespace AssetStudio.Mxr
 
         protected static string ReadString(ObjectReader objectReader) =>
             Encoding.GetEncoding(932).GetString(objectReader.ReadBytes(objectReader.ReadInt32()));
+
+        protected static Dictionary<T, int> Read<T>(ObjectReader objectReader,
+            Action<ObjectReader, Dictionary<T, int>, T> readField,
+            int discardInitialBytes = 1,
+            byte endByte = 255) where T : Enum
+        {
+            var fieldValues = new Dictionary<T, int>();
+            objectReader.ReadBytes(discardInitialBytes);
+
+            while (true)
+            {
+                var eof = objectReader.Position == objectReader.BaseStream.Length;
+                var fieldByte = eof ? endByte : objectReader.ReadByte();
+                var field = (T)Enum.ToObject(typeof(T), fieldByte);
+
+                if (fieldByte == endByte)
+                {
+                    if (!eof)
+                        fieldValues[field] = objectReader.ReadByte();
+
+                    return fieldValues;
+                }
+                else readField(objectReader, fieldValues, field);
+            }
+        }
     }
 }

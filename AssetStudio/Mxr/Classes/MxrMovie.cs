@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AssetStudio.Mxr.Classes
 {
@@ -19,14 +20,15 @@ namespace AssetStudio.Mxr.Classes
         UnknownInt52 = 52
     }
 
-    class MxrMovie : MxrNamedObject<MovieField>
+    class MxrMovie : MxrNamedObject
     {
         public MxrMovie(ObjectReader objectReader)
             : base(objectReader, ClassIDType.MovieTexture) { }
 
-        protected override void OnStart(ref ObjectReader objectReader) { }
+        protected override void Read(ObjectReader objectReader) =>
+            Read<MovieField>(objectReader, ReadField, 0);
 
-        protected override void Read(ObjectReader objectReader, MovieField field)
+        private void ReadField(ObjectReader objectReader, Dictionary<MovieField, int> fieldValues, MovieField field)
         {
             switch (field)
             {
@@ -36,7 +38,7 @@ namespace AssetStudio.Mxr.Classes
                 case MovieField.UnknownByte22:
                 case MovieField.UnknownByte23:
                 case MovieField.UnknownByte24:
-                    _fieldValues.Add(field, objectReader.ReadByte());
+                    fieldValues.Add(field, objectReader.ReadByte());
                     break;
 
                 case MovieField.UnknownInt16:
@@ -45,12 +47,12 @@ namespace AssetStudio.Mxr.Classes
                 case MovieField.Width:
                 case MovieField.Height:
                 case MovieField.UnknownInt52:
-                    _fieldValues.Add(field, objectReader.ReadInt32());
+                    fieldValues.Add(field, objectReader.ReadInt32());
                     break;
 
                 case MovieField.UnknownArray32:
-                    _fieldValues.Add(field, objectReader.ReadInt32());
-                    objectReader.ReadBytes(_fieldValues[field]);
+                    fieldValues.Add(field, objectReader.ReadInt32());
+                    objectReader.ReadBytes(fieldValues[field]);
                     break;
 
                 default:

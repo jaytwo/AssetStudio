@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AssetStudio.Mxr.Classes
 {
@@ -23,12 +24,15 @@ namespace AssetStudio.Mxr.Classes
         Ambient = 3,
     }
 
-    class MxrLight : MxrNamedObject<LightField>
+    class MxrLight : MxrNamedObject
     {
         public MxrLight(ObjectReader objectReader)
             : base(objectReader, ClassIDType.Light) { }
 
-        protected override void Read(ObjectReader objectReader, LightField field)
+        protected override void Read(ObjectReader objectReader) =>
+            Read<LightField>(objectReader, ReadField);
+
+        private void ReadField(ObjectReader objectReader, Dictionary<LightField, int> fieldValues, LightField field)
         {
             object value;
 

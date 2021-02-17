@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AssetStudio.Mxr.Classes
 {
@@ -7,17 +8,20 @@ namespace AssetStudio.Mxr.Classes
         MidiData = 32
     }
 
-    class MxrMidi : MxrNamedObject<MidiField>
+    class MxrMidi : MxrNamedObject
     {
         public MxrMidi(ObjectReader objectReader)
             : base(objectReader, ClassIDType.AudioImporter) { }
 
-        protected override void Read(ObjectReader objectReader, MidiField field)
+        protected override void Read(ObjectReader objectReader) =>
+            Read<MidiField>(objectReader, ReadField);
+
+        private void ReadField(ObjectReader objectReader, Dictionary<MidiField, int> fieldValues, MidiField field)
         {
             switch (field)
             {
                 default:
-                    _fieldValues[field] = objectReader.ReadInt32();
+                    fieldValues[field] = objectReader.ReadInt32();
                     break;
 
                 case MidiField.MidiData:

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AssetStudio.Mxr.Classes
 {
@@ -13,12 +14,15 @@ namespace AssetStudio.Mxr.Classes
         Strings = 32
     }
 
-    class MxrText : MxrNamedObject<TextField>
+    class MxrText : MxrNamedObject
     {
         public MxrText(ObjectReader objectReader)
             : base(objectReader, ClassIDType.TextAsset) { }
 
-        protected override void Read(ObjectReader objectReader, TextField field)
+        protected override void Read(ObjectReader objectReader) =>
+            Read<TextField>(objectReader, ReadField);
+
+        private void ReadField(ObjectReader objectReader, Dictionary<TextField, int> fieldValues, TextField field)
         {
             string value;
 
