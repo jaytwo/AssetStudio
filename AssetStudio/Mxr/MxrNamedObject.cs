@@ -3,14 +3,15 @@ using System.Text;
 
 namespace AssetStudio.Mxr
 {
-    public class MxrNamedObject : NamedObject
+    public abstract class MxrNamedObject : NamedObject
     {
         public byte[] m_Flags;
         public string m_Source;
 
-        public MxrNamedObject(ObjectReader objectReader)
+        public MxrNamedObject(ObjectReader objectReader, ClassIDType type)
             : base(objectReader)
         {
+            this.type = type;
             objectReader.Reset();
 
             if (objectReader.ReadByte() != 0 ||
@@ -43,7 +44,7 @@ namespace AssetStudio.Mxr
             byteSize = (uint)(objectReader.Position - objectReader.byteStart);
         }
 
-        protected virtual void Read(ObjectReader objectReader) { }
+        protected abstract void Read(ObjectReader objectReader);
 
         protected static string ReadString(ObjectReader objectReader) =>
             Encoding.GetEncoding(932).GetString(objectReader.ReadBytes(objectReader.ReadInt32()));

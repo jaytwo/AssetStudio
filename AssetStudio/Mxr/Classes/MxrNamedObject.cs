@@ -5,11 +5,8 @@ namespace AssetStudio.Mxr.Classes
 {
     abstract class MxrNamedObject<T> : MxrNamedObject where T : Enum
     {
-        protected MxrNamedObject(ObjectReader objectReader)
-            : base(objectReader)
-        {
-            type = ClassIDType.Mesh;
-        }
+        protected MxrNamedObject(ObjectReader objectReader, ClassIDType type)
+            : base(objectReader, type) { }
 
         protected readonly Dictionary<T, int> _fieldValues = new Dictionary<T, int>();
 

@@ -30,6 +30,9 @@ namespace AssetStudio.Mxr
                 Objects = new List<Object>();
                 ObjectsDic = new Dictionary<long, Object>();
 
+                if (reader2.ReadByte() == 224)
+                    reader2.Position--;
+
                 while (true)
                 {
                     var objectInfo = new ObjectInfo();
@@ -54,21 +57,18 @@ namespace AssetStudio.Mxr
                             if (reader2.ReadByte() != 17)
                                 throw new InvalidDataException();
 
-                            objectInfo.m_PathID = reader2.ReadInt32();
+                            objectInfo.m_PathID = (objectInfo.classID + 1) * 1000 + reader2.ReadInt32();
 
                             if (reader2.ReadByte() != 32 || reader2.ReadByte() != 16)
                                 throw new InvalidDataException();
 
                             var classId = (MxrClassIDType)objectInfo.classID;
-                            if (classId != MxrClassIDType.Model)
-                                return;
-
                             objectInfo.byteStart = reader2.Position;
                             AddObject(ReadAsset(new ObjectReader(reader2, this, objectInfo), classId));
                             break;
 
                         default:
-                            throw new InvalidDataException();
+                            return;
                     }
 
                     objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
@@ -83,8 +83,26 @@ namespace AssetStudio.Mxr
             {
                 case MxrClassIDType.Model:
                     return new MxrModel(objectReader);
+                case MxrClassIDType.Texture:
+                case MxrClassIDType.Bitmap:
+                    return new MxrTexture(objectReader);
+                case MxrClassIDType.Text:
+                    return new MxrText(objectReader);
+                case MxrClassIDType.Wave:
+                case MxrClassIDType.Sound3d:
+                    return new MxrWave(objectReader);
+                case MxrClassIDType.Midi:
+                    return new MxrMidi(objectReader);
+                case MxrClassIDType.Camera:
+                    return new MxrCamera(objectReader);
+                case MxrClassIDType.Light:
+                    return new MxrLight(objectReader);
+                case MxrClassIDType.Movie:
+                    return new MxrMovie(objectReader);
+                case MxrClassIDType.Ear:
+                    return new MxrEar(objectReader);
                 default:
-                    return new MxrNamedObject(objectReader);
+                    throw new InvalidDataException();
             }
         }
 

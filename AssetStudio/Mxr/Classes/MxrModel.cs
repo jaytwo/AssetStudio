@@ -78,7 +78,7 @@ namespace AssetStudio.Mxr.Classes
         private Group _group;
 
         public MxrModel(ObjectReader objectReader)
-            : base(objectReader) { }
+            : base(objectReader, ClassIDType.Mesh) { }
 
         protected override void Read(ObjectReader objectReader, ModelField field)
         {

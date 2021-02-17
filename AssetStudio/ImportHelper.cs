@@ -84,6 +84,7 @@ namespace AssetStudio
                 case "UnityWebData1.0":
                     return FileType.WebFile;
                 case "MXENGINEMXR":
+                case "DIGILOCAPLY":
                     return FileType.MxrFile;
                 default:
                     {

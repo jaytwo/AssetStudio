@@ -132,8 +132,16 @@
     <Compile Include="Math\Vector2.cs" />
     <Compile Include="Math\Vector3.cs" />
     <Compile Include="Math\Vector4.cs" />
+    <Compile Include="Mxr\Classes\MidiUnpacker.cs" />
+    <Compile Include="Mxr\Classes\MxrEar.cs" />
+    <Compile Include="Mxr\Classes\MxrMovie.cs" />
+    <Compile Include="Mxr\Classes\MxrLight.cs" />
+    <Compile Include="Mxr\Classes\MxrCamera.cs" />
+    <Compile Include="Mxr\Classes\MxrTexture.cs" />
     <Compile Include="Mxr\Classes\MxrModel.cs" />
     <Compile Include="Mxr\Classes\MxrNamedObject.cs" />
+    <Compile Include="Mxr\Classes\MxrText.cs" />
+    <Compile Include="Mxr\Classes\MxrWave.cs" />
     <Compile Include="Mxr\MxrClassIDType.cs" />
     <Compile Include="Mxr\MxrSerializedFile.cs" />
     <Compile Include="Mxr\MxrNamedObject.cs" />
