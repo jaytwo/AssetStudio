@@ -14,13 +14,13 @@ namespace AssetStudio.Mxr.Classes
         Strings = 32
     }
 
-    class MxrText : MxrNamedObject
+    class MxrText : NamedObject
     {
         public MxrText(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.TextAsset) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<TextField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<TextField>(this, ClassIDType.TextAsset, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<TextField, int> fieldValues, TextField field)
         {
@@ -35,7 +35,7 @@ namespace AssetStudio.Mxr.Classes
                     break;
 
                 case TextField.Font:
-                    value = ReadString(objectReader);
+                    value = MxrObjectReader.ReadString(objectReader);
                     break;
 
                 case TextField.Byte22:
@@ -46,7 +46,7 @@ namespace AssetStudio.Mxr.Classes
                     var count = objectReader.ReadInt32();
                     value = string.Empty;
                     for (int i = 0; i < count; i++)
-                        value += Environment.NewLine + ReadString(objectReader);
+                        value += Environment.NewLine + MxrObjectReader.ReadString(objectReader);
                     break;
 
                 default:

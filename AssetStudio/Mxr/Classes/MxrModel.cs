@@ -65,7 +65,7 @@ namespace AssetStudio.Mxr.Classes
         public List<Group> TextureGroup { get; set; }
     }
 
-    class MxrModel : MxrNamedObject
+    class MxrModel : NamedObject
     {
         public Lib3dsFile Model { get; private set; }
 
@@ -78,10 +78,10 @@ namespace AssetStudio.Mxr.Classes
         private Group _group;
 
         public MxrModel(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.Mesh) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<ModelField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<ModelField>(this, ClassIDType.Mesh, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<ModelField, int> fieldValues, ModelField field)
         {
@@ -212,7 +212,7 @@ namespace AssetStudio.Mxr.Classes
                     break;
 
                 case ModelField.GroupName:
-                    _group.Add(field, _groups.Count + " " + ReadString(objectReader));
+                    _group.Add(field, _groups.Count + " " + MxrObjectReader.ReadString(objectReader));
                     break;
 
                 default:

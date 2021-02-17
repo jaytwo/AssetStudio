@@ -20,13 +20,13 @@ namespace AssetStudio.Mxr.Classes
         UnknownInt52 = 52
     }
 
-    class MxrMovie : MxrNamedObject
+    class MxrMovie : NamedObject
     {
         public MxrMovie(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.MovieTexture) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<MovieField>(objectReader, ReadField, 0);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<MovieField>(this, ClassIDType.MovieTexture, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<MovieField, int> fieldValues, MovieField field)
         {

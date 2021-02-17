@@ -64,7 +64,10 @@ namespace AssetStudio.Mxr
 
                             var classId = (MxrClassIDType)objectInfo.classID;
                             objectInfo.byteStart = reader2.Position;
-                            AddObject(ReadAsset(new ObjectReader(reader2, this, objectInfo), classId));
+
+                            var namedObject = ReadAsset(new ObjectReader(reader2, this, objectInfo), classId);
+                            namedObject.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                            AddObject(namedObject);
                             break;
 
                         default:

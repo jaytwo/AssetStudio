@@ -9,13 +9,13 @@ namespace AssetStudio.Mxr.Classes
         Doppler = 18
     }
 
-    class MxrEar : MxrNamedObject
+    class MxrEar : NamedObject
     {
         public MxrEar(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.AudioListener) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<EarField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<EarField>(this, ClassIDType.AudioListener, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<EarField, int> fieldValues, EarField field)
         {

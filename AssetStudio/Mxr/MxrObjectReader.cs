@@ -5,15 +5,17 @@ using System.Text;
 
 namespace AssetStudio.Mxr
 {
-    public abstract class MxrNamedObject : NamedObject
+    static class MxrObjectReader
     {
-        public byte[] m_Flags;
-        public string m_Source;
-
-        public MxrNamedObject(ObjectReader objectReader, ClassIDType type)
-            : base(objectReader)
+        public static Dictionary<T, int> Read<T>(NamedObject namedObject,
+            ClassIDType type,
+            Action<ObjectReader, Dictionary<T, int>, T> readField,
+            int discardInitialBytes = 1,
+            byte endByte = 255) where T : Enum
         {
-            this.type = type;
+            namedObject.type = type;
+
+            var objectReader = namedObject.reader;
             objectReader.Reset();
 
             if (objectReader.ReadByte() != 0 ||
@@ -26,36 +28,22 @@ namespace AssetStudio.Mxr
                 throw new InvalidDataException();
             }
 
-            m_Name = ReadString(objectReader);
+            namedObject.m_Name = ReadString(objectReader);
 
             if (objectReader.ReadByte() != 2)
                 throw new InvalidDataException();
 
-            m_Flags = objectReader.ReadBytes(7);
+            var unknown = objectReader.ReadBytes(7);
 
             if (objectReader.ReadByte() != 64)
                 throw new InvalidDataException();
 
             var sourceChars = objectReader.ReadBytes(objectReader.ReadByte() + objectReader.ReadByte());
-            m_Source = Encoding.GetEncoding(932).GetString(sourceChars).TrimStart('.', '\\', '\0');
+            var source = Encoding.GetEncoding(932).GetString(sourceChars).TrimStart('.', '\\', '\0');
 
             if (objectReader.ReadByte() != 255)
                 throw new InvalidDataException();
-
-            Read(objectReader);
-            byteSize = (uint)(objectReader.Position - objectReader.byteStart);
-        }
-
-        protected abstract void Read(ObjectReader objectReader);
-
-        protected static string ReadString(ObjectReader objectReader) =>
-            Encoding.GetEncoding(932).GetString(objectReader.ReadBytes(objectReader.ReadInt32()));
-
-        protected static Dictionary<T, int> Read<T>(ObjectReader objectReader,
-            Action<ObjectReader, Dictionary<T, int>, T> readField,
-            int discardInitialBytes = 1,
-            byte endByte = 255) where T : Enum
-        {
+        
             var fieldValues = new Dictionary<T, int>();
             objectReader.ReadBytes(discardInitialBytes);
 
@@ -75,5 +63,8 @@ namespace AssetStudio.Mxr
                 else readField(objectReader, fieldValues, field);
             }
         }
+
+        public static string ReadString(ObjectReader objectReader) =>
+            Encoding.GetEncoding(932).GetString(objectReader.ReadBytes(objectReader.ReadInt32()));
     }
 }

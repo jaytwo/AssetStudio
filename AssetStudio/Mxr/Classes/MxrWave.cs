@@ -8,16 +8,16 @@ namespace AssetStudio.Mxr.Classes
         UnknownByte = 131
     }
 
-    class MxrWave : MxrNamedObject
+    class MxrWave : NamedObject
     {
         private const int WAVE_FORMAT_PCM = 0x0001;
         private const int WAVE_FORMAT_DVI_ADPCM = 0x0011;
 
         public MxrWave(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.AudioClip) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<WaveField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<WaveField>(this, ClassIDType.AudioClip, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<WaveField, int> fieldValues, WaveField field)
         {

@@ -8,13 +8,13 @@ namespace AssetStudio.Mxr.Classes
         MidiData = 32
     }
 
-    class MxrMidi : MxrNamedObject
+    class MxrMidi : NamedObject
     {
         public MxrMidi(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.AudioImporter) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<MidiField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<MidiField>(this, ClassIDType.AudioImporter, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<MidiField, int> fieldValues, MidiField field)
         {

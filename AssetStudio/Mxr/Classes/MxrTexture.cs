@@ -32,7 +32,7 @@ namespace AssetStudio.Mxr.Classes
         UnknownByte129 = 129,
     }
 
-    class MxrTexture : MxrNamedObject
+    class MxrTexture : NamedObject
     {
         private byte[] _colours = new byte[0];
         private byte[] _transparent = new byte[0];
@@ -40,10 +40,10 @@ namespace AssetStudio.Mxr.Classes
         private MemoryStream _pixels;
 
         public MxrTexture(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.Texture2D) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<TextureField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<TextureField>(this, ClassIDType.Texture2D, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<TextureField, int> fieldValues, TextureField field)
         {

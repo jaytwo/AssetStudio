@@ -24,13 +24,13 @@ namespace AssetStudio.Mxr.Classes
         Ambient = 3,
     }
 
-    class MxrLight : MxrNamedObject
+    class MxrLight : NamedObject
     {
         public MxrLight(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.Light) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<LightField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<LightField>(this, ClassIDType.Light, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<LightField, int> fieldValues, LightField field)
         {

@@ -17,13 +17,13 @@ namespace AssetStudio.Mxr.Classes
         Angle = 38
     }
 
-    class MxrCamera : MxrNamedObject
+    class MxrCamera : NamedObject
     {
         public MxrCamera(ObjectReader objectReader)
-            : base(objectReader, ClassIDType.Camera) { }
-
-        protected override void Read(ObjectReader objectReader) =>
-            Read<CameraField>(objectReader, ReadField);
+            : base(objectReader)
+        {
+            MxrObjectReader.Read<CameraField>(this, ClassIDType.Camera, ReadField);
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<CameraField, int> fieldValues, CameraField field)
         {
