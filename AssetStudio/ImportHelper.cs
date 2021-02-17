@@ -9,6 +9,7 @@ namespace AssetStudio
         AssetsFile,
         BundleFile,
         WebFile,
+        MxrFile,
         ResourceFile
     }
 
@@ -82,6 +83,8 @@ namespace AssetStudio
                     return FileType.BundleFile;
                 case "UnityWebData1.0":
                     return FileType.WebFile;
+                case "MXENGINEMXR":
+                    return FileType.MxrFile;
                 default:
                     {
                         var magic = reader.ReadBytes(2);

@@ -35,7 +35,11 @@ namespace AssetStudio
             this.reader = reader;
             this.fullName = fullName;
             fileName = Path.GetFileName(fullName);
+            Read();
+        }
 
+        protected virtual void Read()
+        {
             //ReadHeader
             header = new SerializedFileHeader();
             header.m_MetadataSize = reader.ReadUInt32();

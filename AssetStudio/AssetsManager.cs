@@ -69,6 +69,33 @@ namespace AssetStudio
                 case FileType.WebFile:
                     LoadWebFile(fullName, reader);
                     break;
+                case FileType.MxrFile:
+                    LoadMxrFile(fullName, reader);
+                    break;
+            }
+        }
+
+        private void LoadMxrFile(string fullName, EndianBinaryReader reader)
+        {
+            var fileName = Path.GetFileName(fullName);
+            if (!assetsFileListHash.Contains(fileName))
+            {
+                Logger.Info($"Loading {fileName}");
+                try
+                {
+                    var assetsFile = new Mxr.MxrSerializedFile(this, fullName, reader);
+                    assetsFileList.Add(assetsFile);
+                    assetsFileListHash.Add(assetsFile.fileName);
+                }
+                catch
+                {
+                    reader.Dispose();
+                    //Logger.Warning($"Unable to load MXR file {fileName}");
+                }
+            }
+            else
+            {
+                reader.Dispose();
             }
         }
 
