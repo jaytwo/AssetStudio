@@ -32,12 +32,11 @@ namespace AssetStudio.Mxr.Classes
         UnknownByte129 = 129,
     }
 
-    class MxrTexture : NamedObject
+    class MxrTexture : Texture2D
     {
-        private byte[] _colours = new byte[0];
-        private byte[] _transparent = new byte[0];
+        private uint[] _colours = new uint[0];
+        private uint _transparent;
         private BitArray _alphaMap;
-        private MemoryStream _pixels;
 
         public MxrTexture(ObjectReader objectReader)
             : base(objectReader)
@@ -50,49 +49,62 @@ namespace AssetStudio.Mxr.Classes
             switch (field)
             {
                 case TextureField.JpegData:
-                    _pixels = new MemoryStream(objectReader.ReadBytes(objectReader.ReadInt32()));
+                    var jpegStream = new MemoryStream(objectReader.ReadBytes(objectReader.ReadInt32()));
+                    image_data = new ResourceReader(new BinaryReader(jpegStream), 0, (int)jpegStream.Length);
                     break;
 
                 case TextureField.BmpColourTable:
-                    _colours = objectReader.ReadBytes(fieldValues[TextureField.Colours] * 4);
+                    _colours = objectReader.ReadUInt32Array(fieldValues[TextureField.Colours]);
                     break;
 
                 case TextureField.Tranparent:
-                    _transparent = objectReader.ReadBytes(4);
+                    _transparent = objectReader.ReadUInt32() | 0xff000000;
                     break;
 
                 case TextureField.BmpPixelData:
-                    _pixels = new MemoryStream();
-                    using (var memoryWriter = new BinaryWriter(_pixels, Encoding.Default, true))
+                    using (var memoryWriter = new BinaryWriter(new MemoryStream(), Encoding.Default, true))
                     {
-                        // BMP header
-                        var rowBits = fieldValues[TextureField.Width] * fieldValues[TextureField.BitsPerPixel];
-                        if (rowBits % 32 != 0)
-                            rowBits = 32 + (32 * (rowBits / 32));
+                        m_Width = fieldValues[TextureField.Width];
+                        m_Height = fieldValues[TextureField.Height];
+                        m_TextureFormat = TextureFormat.BGRA32;
 
-                        var pixelsLength = rowBits * fieldValues[TextureField.Height] / 8;
-                        memoryWriter.Write((byte)0x42);
-                        memoryWriter.Write((byte)0x4D);
-                        memoryWriter.Write(14 + 40 + _colours.Length + pixelsLength);
-                        memoryWriter.Write(0);
-                        memoryWriter.Write(14 + 40 + _colours.Length);
+                        var bitsPerPixel = fieldValues[TextureField.BitsPerPixel];
+                        var rowBytes = (int)Math.Ceiling((m_Width * bitsPerPixel) / 8.0) % 4;
+                        
+                        for (int row = 0; row < m_Height; row++)
+                        {
+                            for (int column = 0; column < m_Width; column++)
+                            {
+                                switch (bitsPerPixel)
+                                {
+                                    case 4:
+                                        var b = objectReader.ReadByte();
+                                        WriteColour(memoryWriter, _colours[b >> 4]);
+                                        if (++column < m_Width)
+                                            WriteColour(memoryWriter, _colours[b & 0x0f]);
+                                        break;
 
-                        // DIB header
-                        memoryWriter.Write(40);
-                        memoryWriter.Write(fieldValues[TextureField.Width]);
-                        memoryWriter.Write(fieldValues[TextureField.Height]);
-                        memoryWriter.Write((short)1);
-                        memoryWriter.Write((short)fieldValues[TextureField.BitsPerPixel]);
-                        memoryWriter.Write(new byte[16]);
-                        memoryWriter.Write(fieldValues[TextureField.Colours]);
-                        memoryWriter.Write(0);
+                                    case 8:
+                                        WriteColour(memoryWriter, _colours[objectReader.ReadByte()]);
+                                        break;
 
-                        // Pixels
-                        memoryWriter.Write(_colours);
-                        memoryWriter.Write(objectReader.ReadBytes(pixelsLength));
+                                    case 24:
+                                        WriteColour(memoryWriter, objectReader.ReadUInt32());
+                                        objectReader.Position--;
+                                        break;
+
+                                    default:
+                                        throw new NotImplementedException();
+                                }
+                            }
+
+                            // Align rows to multiples of 32 bits
+                            if (rowBytes != 0)
+                                objectReader.ReadBytes(4 - rowBytes);
+                        }
+
+                        image_data = new ResourceReader(new BinaryReader(memoryWriter.BaseStream), 0, (int)memoryWriter.BaseStream.Length);
                     }
-
-                    _pixels.Position = 0;
                     break;
 
                 case TextureField.BitsPerPixel:
@@ -133,6 +145,12 @@ namespace AssetStudio.Mxr.Classes
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private void WriteColour(BinaryWriter writer, uint bgra)
+        {
+            bgra |= 0xff000000;
+            writer.Write(bgra == _transparent ? 0 : bgra);
         }
     }
 }

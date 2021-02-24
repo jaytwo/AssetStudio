@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AssetStudio
+﻿namespace AssetStudio
 {
     public class StreamingInfo
     {
@@ -52,7 +50,7 @@ namespace AssetStudio
         }
     }
 
-    public sealed class Texture2D : Texture
+    public class Texture2D : Texture
     {
         public int m_Width;
         public int m_Height;
@@ -64,6 +62,11 @@ namespace AssetStudio
         public StreamingInfo m_StreamData;
 
         public Texture2D(ObjectReader reader) : base(reader)
+        {
+            Read();
+        }
+
+        protected virtual void Read()
         {
             m_Width = reader.ReadInt32();
             m_Height = reader.ReadInt32();
