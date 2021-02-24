@@ -42,9 +42,12 @@ namespace AssetStudio.Mxr.Classes
         private MemoryStream _pixels;
 
         public MxrTexture(ObjectReader objectReader)
-            : base(objectReader)
+            : base(objectReader) { }
+
+        protected override void Read()
         {
             m_TextureFormat = TextureFormat.BGRA32;
+            m_TextureSettings = new GLTextureSettings();
             MxrObjectReader.Read<TextureField>(this, ClassIDType.Texture2D, ReadField);
         }
 

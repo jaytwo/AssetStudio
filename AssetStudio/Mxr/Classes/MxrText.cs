@@ -19,7 +19,9 @@ namespace AssetStudio.Mxr.Classes
     class MxrText : TextAsset
     {
         public MxrText(ObjectReader objectReader)
-            : base(objectReader)
+            : base(objectReader) { }
+
+        protected override void Read()
         {
             MxrObjectReader.Read<TextField>(this, ClassIDType.TextAsset, ReadField);
         }

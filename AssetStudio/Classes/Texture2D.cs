@@ -30,6 +30,8 @@
         public float m_MipBias;
         public int m_WrapMode;
 
+        public GLTextureSettings() { }
+
         public GLTextureSettings(ObjectReader reader)
         {
             var version = reader.version;
