@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace AssetStudio.Mxr.Classes
@@ -49,8 +52,30 @@ namespace AssetStudio.Mxr.Classes
             switch (field)
             {
                 case TextureField.JpegData:
-                    var jpegStream = new MemoryStream(objectReader.ReadBytes(objectReader.ReadInt32()));
-                    image_data = new ResourceReader(new BinaryReader(jpegStream), 0, (int)jpegStream.Length);
+                    using (var jpeg = new Bitmap(new MemoryStream(objectReader.ReadBytes(objectReader.ReadInt32()))))
+                    {
+                        m_Width = jpeg.Width;
+                        m_Height = jpeg.Height;
+                        m_TextureFormat = TextureFormat.RGB24;
+
+                        var data = jpeg.LockBits(new Rectangle(0, 0, m_Width, m_Height), ImageLockMode.ReadOnly, jpeg.PixelFormat);
+                        var strides = new byte[data.Stride * jpeg.Height];
+                        Marshal.Copy(data.Scan0, strides, 0, strides.Length);
+                        jpeg.UnlockBits(data);
+
+                        var rgb = new byte[m_Width * m_Height * 3];
+                        var index = 0;
+                        for (int row = 0; row < m_Height; row++)
+                            for (int column = 0; column < m_Width; column++)
+                            {
+                                var offset = ((m_Height - row - 1) * data.Stride) + (column * 3);
+                                rgb[index++] = strides[offset + 2];
+                                rgb[index++] = strides[offset + 1];
+                                rgb[index++] = strides[offset + 0];
+                            }
+
+                        image_data = new ResourceReader(new BinaryReader(new MemoryStream(rgb)), 0, rgb.Length);
+                    }
                     break;
 
                 case TextureField.BmpColourTable:
