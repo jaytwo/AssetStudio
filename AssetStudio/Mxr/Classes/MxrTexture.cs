@@ -39,11 +39,12 @@ namespace AssetStudio.Mxr.Classes
     {
         private uint[] _colours = new uint[0];
         private uint _transparent;
-        private BitArray _alphaMap;
+        private MemoryStream _pixels;
 
         public MxrTexture(ObjectReader objectReader)
             : base(objectReader)
         {
+            m_TextureFormat = TextureFormat.BGRA32;
             MxrObjectReader.Read<TextureField>(this, ClassIDType.Texture2D, ReadField);
         }
 
@@ -56,25 +57,44 @@ namespace AssetStudio.Mxr.Classes
                     {
                         m_Width = jpeg.Width;
                         m_Height = jpeg.Height;
-                        m_TextureFormat = TextureFormat.RGB24;
 
                         var data = jpeg.LockBits(new Rectangle(0, 0, m_Width, m_Height), ImageLockMode.ReadOnly, jpeg.PixelFormat);
                         var strides = new byte[data.Stride * jpeg.Height];
                         Marshal.Copy(data.Scan0, strides, 0, strides.Length);
                         jpeg.UnlockBits(data);
 
-                        var rgb = new byte[m_Width * m_Height * 3];
+                        var rgb = new byte[m_Width * m_Height * 4];
                         var index = 0;
                         for (int row = 0; row < m_Height; row++)
                             for (int column = 0; column < m_Width; column++)
                             {
-                                var offset = ((m_Height - row - 1) * data.Stride) + (column * 3);
-                                rgb[index++] = strides[offset + 2];
-                                rgb[index++] = strides[offset + 1];
-                                rgb[index++] = strides[offset + 0];
+                                var offset = (m_Height - row - 1) * data.Stride;
+
+                                switch (jpeg.PixelFormat)
+                                {
+                                    case PixelFormat.Format24bppRgb:
+                                        offset += column * 3;
+                                        rgb[index++] = strides[offset++];
+                                        rgb[index++] = strides[offset++];
+                                        rgb[index++] = strides[offset];
+                                        rgb[index++] = 255;
+                                        break;
+
+                                    case PixelFormat.Format8bppIndexed:
+                                        var colour = jpeg.Palette.Entries[strides[offset + column]];
+                                        rgb[index++] = colour.B;
+                                        rgb[index++] = colour.G;
+                                        rgb[index++] = colour.R;
+                                        rgb[index++] = colour.A;
+                                        break;
+
+                                    default:
+                                        throw new NotImplementedException();
+                                }
                             }
 
-                        image_data = new ResourceReader(new BinaryReader(new MemoryStream(rgb)), 0, rgb.Length);
+                        _pixels = new MemoryStream(rgb);
+                        image_data = new ResourceReader(new BinaryReader(_pixels), 0, rgb.Length);
                     }
                     break;
 
@@ -87,11 +107,10 @@ namespace AssetStudio.Mxr.Classes
                     break;
 
                 case TextureField.BmpPixelData:
-                    using (var memoryWriter = new BinaryWriter(new MemoryStream(), Encoding.Default, true))
+                    using (var memoryWriter = new BinaryWriter(_pixels = new MemoryStream(), Encoding.Default, true))
                     {
                         m_Width = fieldValues[TextureField.Width];
                         m_Height = fieldValues[TextureField.Height];
-                        m_TextureFormat = TextureFormat.BGRA32;
 
                         var bitsPerPixel = fieldValues[TextureField.BitsPerPixel];
                         var rowBytes = (int)Math.Ceiling((m_Width * bitsPerPixel) / 8.0) % 4;
@@ -128,7 +147,7 @@ namespace AssetStudio.Mxr.Classes
                                 objectReader.ReadBytes(4 - rowBytes);
                         }
 
-                        image_data = new ResourceReader(new BinaryReader(memoryWriter.BaseStream), 0, (int)memoryWriter.BaseStream.Length);
+                        image_data = new ResourceReader(new BinaryReader(_pixels), 0, (int)_pixels.Length);
                     }
                     break;
 
@@ -151,7 +170,20 @@ namespace AssetStudio.Mxr.Classes
 
                 case TextureField.AlphaMap:
                     fieldValues.Add(field, objectReader.ReadInt32());
-                    _alphaMap = new BitArray(objectReader.ReadBytes(fieldValues[field]));
+                    var alphaMap = new BitArray(objectReader.ReadBytes(fieldValues[field]));
+                    var stride = alphaMap.Length / m_Height;
+                    for (int row = 0; row < m_Height; row++)
+                        for (int column = 0; column < m_Width; column++)
+                        {
+                            var endianColumn = 8 * (column / 8);
+                            endianColumn += 7 - (column % 8);
+
+                            if (!alphaMap[(row * stride) + endianColumn])
+                            {
+                                _pixels.Position = ((row * m_Width) + column) * 4 + 3;
+                                _pixels.WriteByte(0);
+                            }
+                        }
                     break;
 
                 case TextureField.Width:
