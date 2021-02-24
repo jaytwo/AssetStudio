@@ -444,7 +444,7 @@ namespace AssetStudio
         }
     }
 
-    public sealed class Mesh : NamedObject
+    public class Mesh : NamedObject
     {
         private bool m_Use16BitIndices = true;
         public SubMesh[] m_SubMeshes;
@@ -473,6 +473,11 @@ namespace AssetStudio
         public List<uint> m_Indices = new List<uint>();
 
         public Mesh(ObjectReader reader) : base(reader)
+        {
+            Read();
+        }
+
+        protected virtual void Read()
         {
             if (version[0] < 3 || (version[0] == 3 && version[1] < 5)) //3.5 down
             {

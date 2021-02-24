@@ -1,5 +1,4 @@
-﻿using lib3ds.Net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -65,20 +64,17 @@ namespace AssetStudio.Mxr.Classes
         public List<Group> TextureGroup { get; set; }
     }
 
-    class MxrModel : NamedObject
+    class MxrModel : Mesh
     {
-        public Lib3dsFile Model { get; private set; }
-
         private short[] _faceGroups;
-
-        private readonly List<Lib3dsVertex> _vertices = new List<Lib3dsVertex>();
-        private readonly List<ushort[]> _faces = new List<ushort[]>();
         private readonly List<Group> _groups = new List<Group>();
 
         private Group _group;
 
         public MxrModel(ObjectReader objectReader)
-            : base(objectReader)
+            : base(objectReader) { }
+
+        protected override void Read()
         {
             MxrObjectReader.Read<ModelField>(this, ClassIDType.Mesh, ReadField);
         }
@@ -101,9 +97,8 @@ namespace AssetStudio.Mxr.Classes
                     break;
 
                 case ModelField.Vertices:
-                    _vertices.AddRange(Enumerable.Range(0, (int)_group[ModelField.VertexCount])
-                        .Select(i => new Lib3dsVertex(objectReader.ReadSingle(), objectReader.ReadSingle(), objectReader.ReadSingle()))
-                        .ToList());
+                    m_VertexCount = (int)_group[ModelField.VertexCount];
+                    m_Vertices = objectReader.ReadSingleArray(3 * m_VertexCount);
                     break;
 
                 case ModelField.FacesSingle:
@@ -223,8 +218,25 @@ namespace AssetStudio.Mxr.Classes
         private void UnpackFaces(ushort[] indices)
         {
             var i = 0;
+            m_Indices = new List<uint>();
+
             while (i < indices.Length)
-                _faces.Add(Enumerable.Range(0, indices[i] + 1).Select(j => indices[i++]).ToArray());
+            {
+                var face = Enumerable.Range(0, indices[i] + 1).Select(j => indices[i++]).ToArray();
+
+                // Reverse winding direction
+                m_Indices.Add(face[1]);
+                m_Indices.Add(face[3]);
+                m_Indices.Add(face[2]);
+
+                // Split quads into triangles
+                if (face[0] == 4)
+                {
+                    m_Indices.Add(face[4]);
+                    m_Indices.Add(face[3]);
+                    m_Indices.Add(face[1]);
+                }
+            }
         }
     }
 }
