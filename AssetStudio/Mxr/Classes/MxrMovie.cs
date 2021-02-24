@@ -25,7 +25,7 @@ namespace AssetStudio.Mxr.Classes
         public MxrMovie(ObjectReader objectReader)
             : base(objectReader)
         {
-            MxrObjectReader.Read<MovieField>(this, ClassIDType.MovieTexture, ReadField);
+            MxrObjectReader.Read<MovieField>(this, ClassIDType.MovieTexture, ReadField, 0);
         }
 
         private void ReadField(ObjectReader objectReader, Dictionary<MovieField, int> fieldValues, MovieField field)

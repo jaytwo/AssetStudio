@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-
-namespace AssetStudio
+﻿namespace AssetStudio
 {
-    public sealed class AudioClip : NamedObject
+    public class AudioClip : NamedObject
     {
         public int m_Format;
         public AudioType m_Type;
@@ -32,6 +26,11 @@ namespace AssetStudio
         public ResourceReader m_AudioData;
 
         public AudioClip(ObjectReader reader) : base(reader)
+        {
+            Read();
+        }
+
+        protected virtual void Read()
         {
             if (version[0] < 5)
             {

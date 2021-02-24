@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
@@ -8,13 +10,15 @@ namespace AssetStudio.Mxr.Classes
         UnknownByte = 131
     }
 
-    class MxrWave : NamedObject
+    class MxrWave : AudioClip
     {
         private const int WAVE_FORMAT_PCM = 0x0001;
         private const int WAVE_FORMAT_DVI_ADPCM = 0x0011;
 
         public MxrWave(ObjectReader objectReader)
-            : base(objectReader)
+            : base(objectReader) { }
+
+        protected override void Read()
         {
             MxrObjectReader.Read<WaveField>(this, ClassIDType.AudioClip, ReadField);
         }
@@ -37,12 +41,39 @@ namespace AssetStudio.Mxr.Classes
                     var fmtLength = format == WAVE_FORMAT_PCM ? 16 : (18 + extraSize);
                     var dataLength = (int)objectReader.ReadUInt32() - extraSize;
 
-                    if (format == WAVE_FORMAT_DVI_ADPCM)
+                    var audioData = new MemoryStream();
+                    using (var destination = new BinaryWriter(audioData, Encoding.ASCII, true))
                     {
-                        var samplesPerBlock = objectReader.ReadUInt16();
+                        destination.Write(Encoding.ASCII.GetBytes("RIFF"));
+                        destination.Write(dataLength + 20 + fmtLength);
+                        destination.Write(Encoding.ASCII.GetBytes("WAVEfmt "));
+                        destination.Write(fmtLength);
+                        destination.Write(format);
+                        destination.Write(channels);
+                        destination.Write(samplesPerSec);
+                        destination.Write(avgBytesPerSec);
+                        destination.Write(blockAlign);
+                        destination.Write(bitsPerSample);
+
+                        if (format == WAVE_FORMAT_DVI_ADPCM)
+                        {
+                            // See https://icculus.org/SDL_sound/downloads/external_documentation/wavecomp.htm
+                            var samplesPerBlock = objectReader.ReadUInt16();
+                            destination.Write(extraSize);
+                            destination.Write(samplesPerBlock);
+                            destination.Write(Encoding.ASCII.GetBytes("fact"));
+                            destination.Write(4);
+                            destination.Write(samplesPerBlock * dataLength / blockAlign);
+                        }
+
+                        destination.Write(Encoding.ASCII.GetBytes("data"));
+                        destination.Write(dataLength);
+                        destination.Write(objectReader.ReadBytes(dataLength));
                     }
 
-                    objectReader.ReadBytes(dataLength);
+                    m_Type = AudioType.WAV;
+                    m_Size = audioData.Length;
+                    m_AudioData = new ResourceReader(new BinaryReader(audioData), 0, (int)audioData.Length);
                     break;
 
                 case WaveField.UnknownByte:
