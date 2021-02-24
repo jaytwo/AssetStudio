@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
@@ -14,7 +16,7 @@ namespace AssetStudio.Mxr.Classes
         Strings = 32
     }
 
-    class MxrText : NamedObject
+    class MxrText : TextAsset
     {
         public MxrText(ObjectReader objectReader)
             : base(objectReader)
@@ -44,9 +46,8 @@ namespace AssetStudio.Mxr.Classes
 
                 case TextField.Strings:
                     var count = objectReader.ReadInt32();
-                    value = string.Empty;
-                    for (int i = 0; i < count; i++)
-                        value += Environment.NewLine + MxrObjectReader.ReadString(objectReader);
+                    var strings = Enumerable.Range(0, count).Select(i => MxrObjectReader.ReadString(objectReader)).ToArray();
+                    m_Script = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, strings));
                     break;
 
                 default:
