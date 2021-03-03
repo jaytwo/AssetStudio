@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
 
 namespace AssetStudio.Mxr.Classes
@@ -13,47 +11,48 @@ namespace AssetStudio.Mxr.Classes
         Size = 19,
         Font = 21,
         Byte22 = 22,
-        Strings = 32
+        String = 32
     }
 
     class MxrText : TextAsset
     {
+        private string _infoText;
+
         public MxrText(ObjectReader objectReader)
             : base(objectReader) { }
 
         protected override void Read()
         {
             MxrObjectReader.Read<TextField>(this, ClassIDType.TextAsset, ReadField);
+            m_Script = Encoding.UTF8.GetBytes(_infoText);
         }
 
         private void ReadField(ObjectReader objectReader, Dictionary<TextField, int> fieldValues, TextField field)
         {
-            string value;
-
             switch (field)
             {
                 case TextField.Colour:
                 case TextField.BackColour:
-                    value = string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte());
+                    _infoText += $"{field}: {string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte())}\n";
                     objectReader.ReadByte();
                     break;
 
                 case TextField.Font:
-                    value = MxrObjectReader.ReadString(objectReader);
+                    _infoText += $"{field}: {MxrObjectReader.ReadString(objectReader)}\n";
                     break;
 
                 case TextField.Byte22:
-                    value = objectReader.ReadByte().ToString();
+                    _infoText += $"{field}: {objectReader.ReadByte()}\n";
                     break;
 
-                case TextField.Strings:
+                case TextField.String:
                     var count = objectReader.ReadInt32();
-                    var strings = Enumerable.Range(0, count).Select(i => MxrObjectReader.ReadString(objectReader)).ToArray();
-                    m_Script = Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, strings));
+                    for (int i = 0; i < count; i++)
+                        _infoText += $"{field}[{i}]: {MxrObjectReader.ReadString(objectReader)}\n";
                     break;
 
                 default:
-                    value = objectReader.ReadInt32().ToString();
+                    _infoText += $"{field}: {objectReader.ReadInt32()}\n";
                     break;
             }
         }

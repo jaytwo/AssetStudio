@@ -9,8 +9,10 @@ namespace AssetStudio.Mxr.Classes
         Doppler = 18
     }
 
-    class MxrEar : NamedObject
+    class MxrEar : NamedObject, IMxrPropertyInfo
     {
+        public string InfoText { get; private set; }
+
         public MxrEar(ObjectReader objectReader)
             : base(objectReader)
         {
@@ -19,7 +21,7 @@ namespace AssetStudio.Mxr.Classes
 
         private void ReadField(ObjectReader objectReader, Dictionary<EarField, int> fieldValues, EarField field)
         {
-            var value = objectReader.ReadSingle();
+            InfoText += $"{field}: {objectReader.ReadSingle()}\n";
         }
     }
 }

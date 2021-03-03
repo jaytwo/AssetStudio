@@ -24,8 +24,10 @@ namespace AssetStudio.Mxr.Classes
         Ambient = 3,
     }
 
-    class MxrLight : NamedObject
+    class MxrLight : NamedObject, IMxrPropertyInfo
     {
+        public string InfoText { get; private set; }
+
         public MxrLight(ObjectReader objectReader)
             : base(objectReader)
         {
@@ -34,25 +36,23 @@ namespace AssetStudio.Mxr.Classes
 
         private void ReadField(ObjectReader objectReader, Dictionary<LightField, int> fieldValues, LightField field)
         {
-            object value;
-
             switch (field)
             {
                 case LightField.LightType:
-                    value = (LightType)objectReader.ReadByte();
+                    InfoText += $"{field}: {(LightType)objectReader.ReadByte()}\n";
                     break;
 
                 case LightField.CutOffAngle:
                 case LightField.CutOffAnglePhi:
-                    value = Math.Round(objectReader.ReadSingle() * 180.0 / Math.PI);
+                    InfoText += $"{field}: {Math.Round(objectReader.ReadSingle() * 180.0 / Math.PI)}\n";
                     break;
 
                 case LightField.Colour:
-                    value = string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte());
+                    InfoText += $"{field}: {string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte())}\n";
                     break;
 
                 default:
-                    value = objectReader.ReadSingle();
+                    InfoText += $"{field}: {objectReader.ReadSingle()}\n";
                     break;
             }
         }

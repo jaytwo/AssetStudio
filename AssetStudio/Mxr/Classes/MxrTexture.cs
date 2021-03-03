@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -35,8 +36,10 @@ namespace AssetStudio.Mxr.Classes
         UnknownByte129 = 129,
     }
 
-    class MxrTexture : Texture2D
+    class MxrTexture : Texture2D, IMxrPropertyInfo
     {
+        public string InfoText { get; private set; }
+
         private uint[] _colours = new uint[0];
         private uint _transparent;
         private MemoryStream _pixels;
@@ -157,6 +160,7 @@ namespace AssetStudio.Mxr.Classes
                 case TextureField.BitsPerPixel:
                 case TextureField.UnknownShort31:
                     fieldValues.Add(field, objectReader.ReadUInt16());
+                    InfoText += $"{field}: {fieldValues[field]}\n";
                     break;
 
                 case TextureField.UnknownByte22:
@@ -164,11 +168,12 @@ namespace AssetStudio.Mxr.Classes
                 case TextureField.UnknownByte128:
                 case TextureField.UnknownByte129:
                     fieldValues.Add(field, objectReader.ReadByte());
+                    InfoText += $"{field}: {fieldValues[field]}\n";
                     break;
 
                 case TextureField.UnknownArray99:
                     fieldValues.Add(field, objectReader.ReadInt32());
-                    objectReader.ReadBytes(12);
+                    InfoText += $"{field}: {fieldValues[field]} [{string.Join(", ", Enumerable.Range(0, 12).Select(i => objectReader.ReadByte()))}]\n";
                     break;
 
                 case TextureField.AlphaMap:
@@ -189,21 +194,10 @@ namespace AssetStudio.Mxr.Classes
                         }
                     break;
 
-                case TextureField.Width:
-                case TextureField.Height:
-                case TextureField.Colours:
-                case TextureField.UnknownInt21:
-                case TextureField.UnknownInt26:
-                case TextureField.UnknownInt96:
-                case TextureField.UnknownInt97:
-                case TextureField.UnknownInt98:
-                case TextureField.UnknownInt100:
-                case TextureField.UnknownInt101:
-                    fieldValues.Add(field, objectReader.ReadInt32());
-                    break;
-
                 default:
-                    throw new NotImplementedException();
+                    fieldValues.Add(field, objectReader.ReadInt32());
+                    InfoText += $"{field}: {fieldValues[field]}\n";
+                    break;
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AssetStudio.Mxr.Classes
 {
@@ -20,8 +21,10 @@ namespace AssetStudio.Mxr.Classes
         UnknownInt52 = 52
     }
 
-    class MxrMovie : NamedObject
+    class MxrMovie : NamedObject, IMxrPropertyInfo
     {
+        public string InfoText { get; private set; }
+
         public MxrMovie(ObjectReader objectReader)
             : base(objectReader)
         {
@@ -38,7 +41,7 @@ namespace AssetStudio.Mxr.Classes
                 case MovieField.UnknownByte22:
                 case MovieField.UnknownByte23:
                 case MovieField.UnknownByte24:
-                    fieldValues.Add(field, objectReader.ReadByte());
+                    InfoText += $"{field}: {objectReader.ReadByte()}\n";
                     break;
 
                 case MovieField.UnknownInt16:
@@ -47,12 +50,11 @@ namespace AssetStudio.Mxr.Classes
                 case MovieField.Width:
                 case MovieField.Height:
                 case MovieField.UnknownInt52:
-                    fieldValues.Add(field, objectReader.ReadInt32());
+                    InfoText += $"{field}: {objectReader.ReadInt32()}\n";
                     break;
 
                 case MovieField.UnknownArray32:
-                    fieldValues.Add(field, objectReader.ReadInt32());
-                    objectReader.ReadBytes(fieldValues[field]);
+                    InfoText += $"{field}: [{string.Join(", ", Enumerable.Range(0, objectReader.ReadInt32()).Select(i => objectReader.ReadByte()))}]\n";
                     break;
 
                 default:

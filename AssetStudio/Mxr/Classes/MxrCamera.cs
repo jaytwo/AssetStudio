@@ -17,8 +17,10 @@ namespace AssetStudio.Mxr.Classes
         Angle = 38
     }
 
-    class MxrCamera : NamedObject
+    class MxrCamera : NamedObject, IMxrPropertyInfo
     {
+        public string InfoText { get; private set; }
+
         public MxrCamera(ObjectReader objectReader)
             : base(objectReader)
         {
@@ -27,22 +29,20 @@ namespace AssetStudio.Mxr.Classes
 
         private void ReadField(ObjectReader objectReader, Dictionary<CameraField, int> fieldValues, CameraField field)
         {
-            object value;
-            
             switch (field)
             {
                 case CameraField.FogColour:
-                    value = string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte());
+                    InfoText += $"{field}: {string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte())}\n";
                     objectReader.ReadByte();
                     break;
 
                 case CameraField.FogEnabled:
                 case CameraField.Unknown37:
-                    value = objectReader.ReadInt32();
+                    InfoText += $"{field}: {objectReader.ReadInt32()}\n";
                     break;
 
                 default:
-                    value = objectReader.ReadSingle();
+                    InfoText += $"{field}: {objectReader.ReadSingle()}\n";
                     break;
             }
         }

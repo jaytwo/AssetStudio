@@ -685,6 +685,9 @@ namespace AssetStudioGUI
         {
             if (assetItem == null)
                 return;
+
+            assetItem.InfoText = null;
+
             try
             {
                 switch (assetItem.Asset)
@@ -732,6 +735,8 @@ namespace AssetStudioGUI
                         }
                         break;
                 }
+
+                assetItem.InfoText += (assetItem.Asset as AssetStudio.Mxr.Classes.IMxrPropertyInfo)?.InfoText;
             }
             catch (Exception e)
             {
