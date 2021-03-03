@@ -134,6 +134,7 @@
     <Compile Include="Math\Vector3.cs" />
     <Compile Include="Math\Vector4.cs" />
     <Compile Include="Mxr\Classes\IMxrPropertyInfo.cs" />
+    <Compile Include="Mxr\Classes\MxrEvents.cs" />
     <Compile Include="Mxr\Classes\MxrTable.cs" />
     <Compile Include="Mxr\Classes\MxrMidi.cs" />
     <Compile Include="Mxr\Classes\MxrEar.cs" />

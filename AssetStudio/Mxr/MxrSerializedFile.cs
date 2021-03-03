@@ -72,20 +72,36 @@ namespace AssetStudio.Mxr
                             AddObject(namedObject);
                             break;
 
-                        // Scripts
                         case 255:
+                            // Table
                             if (reader2.ReadByte() != 48)
                                 throw new InvalidDataException();
 
                             var totalLength = reader2.ReadInt32();
+                            var totalStart = reader2.BaseStream.Position;
                             var scriptBytes = reader2.ReadBytes(reader2.ReadInt32());
                             
                             objectInfo.classID = (int)MxrClassIDType.Script;
                             objectInfo.byteStart = reader2.Position;
 
                             var tableObject = new MxrTable(new ObjectReader(reader2, this, objectInfo));
-                            tableObject.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                            tableObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                            m_Objects.Add(objectInfo);
                             AddObject(tableObject);
+
+                            if (reader2.ReadInt16() != 0)
+                                throw new InvalidDataException();
+
+                            // Events
+                            objectInfo = new ObjectInfo();
+                            objectInfo.classID = (int)MxrClassIDType.Script;
+                            objectInfo.m_PathID = 1;
+                            objectInfo.byteStart = reader2.Position;
+
+                            var eventsObject = new MxrEvents(new ObjectReader(reader2, this, objectInfo));
+                            eventsObject.Read(tableObject.Strings, totalStart + totalLength);
+                            eventsObject.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                            AddObject(eventsObject);
                             break;
 
                         default:
