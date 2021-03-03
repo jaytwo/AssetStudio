@@ -9,12 +9,12 @@
         Text = 3,
         Wave = 4,
         Midi = 5,
+        Script = 6,
         Camera = 7,
         Light = 8,
         Movie = 9,
         Sound3d = 11,
         Ear = 13,
-        Score = 32,
-        Script = 255 // Should be 6!
+        Score = 32
     }
 }

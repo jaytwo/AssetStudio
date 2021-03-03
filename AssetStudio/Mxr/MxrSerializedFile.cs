@@ -37,7 +37,9 @@ namespace AssetStudio.Mxr
                 {
                     var objectInfo = new ObjectInfo();
                     objectInfo.typeID = reader2.ReadByte();
-                    objectInfo.classID = reader2.ReadInt32();
+
+                    if (objectInfo.typeID != 255)
+                        objectInfo.classID = reader2.ReadInt32();
 
                     switch (objectInfo.typeID)
                     {
@@ -68,6 +70,22 @@ namespace AssetStudio.Mxr
                             var namedObject = ReadAsset(new ObjectReader(reader2, this, objectInfo), classId);
                             namedObject.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
                             AddObject(namedObject);
+                            break;
+
+                        // Scripts
+                        case 255:
+                            if (reader2.ReadByte() != 48)
+                                throw new InvalidDataException();
+
+                            var totalLength = reader2.ReadInt32();
+                            var scriptBytes = reader2.ReadBytes(reader2.ReadInt32());
+                            
+                            objectInfo.classID = (int)MxrClassIDType.Script;
+                            objectInfo.byteStart = reader2.Position;
+
+                            var tableObject = new MxrTable(new ObjectReader(reader2, this, objectInfo));
+                            tableObject.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                            AddObject(tableObject);
                             break;
 
                         default:

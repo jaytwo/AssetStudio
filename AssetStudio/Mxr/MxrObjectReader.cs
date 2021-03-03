@@ -11,39 +11,43 @@ namespace AssetStudio.Mxr
             ClassIDType type,
             Action<ObjectReader, Dictionary<T, int>, T> readField,
             int discardInitialBytes = 1,
-            byte endByte = 255) where T : Enum
+            byte endByte = 255,
+            bool withHeader = true) where T : Enum
         {
             namedObject.type = type;
 
             var objectReader = namedObject.reader;
             objectReader.Reset();
 
-            if (objectReader.ReadByte() != 0 ||
-                objectReader.ReadByte() != 0 ||
-                objectReader.ReadByte() != 0 ||
-                objectReader.ReadByte() != 0 ||
-                objectReader.ReadByte() != 0 ||
-                objectReader.ReadByte() != 1)
+            if (withHeader)
             {
-                throw new InvalidDataException();
+                if (objectReader.ReadByte() != 0 ||
+                    objectReader.ReadByte() != 0 ||
+                    objectReader.ReadByte() != 0 ||
+                    objectReader.ReadByte() != 0 ||
+                    objectReader.ReadByte() != 0 ||
+                    objectReader.ReadByte() != 1)
+                {
+                    throw new InvalidDataException();
+                }
+
+                namedObject.m_Name = ReadString(objectReader);
+
+                if (objectReader.ReadByte() != 2)
+                    throw new InvalidDataException();
+
+                var unknown = objectReader.ReadBytes(7);
+
+                if (objectReader.ReadByte() != 64)
+                    throw new InvalidDataException();
+
+                var sourceChars = objectReader.ReadBytes(objectReader.ReadByte() + objectReader.ReadByte());
+                var source = Encoding.GetEncoding(932).GetString(sourceChars).TrimStart('.', '\\', '\0');
+
+                if (objectReader.ReadByte() != 255)
+                    throw new InvalidDataException();
             }
 
-            namedObject.m_Name = ReadString(objectReader);
-
-            if (objectReader.ReadByte() != 2)
-                throw new InvalidDataException();
-
-            var unknown = objectReader.ReadBytes(7);
-
-            if (objectReader.ReadByte() != 64)
-                throw new InvalidDataException();
-
-            var sourceChars = objectReader.ReadBytes(objectReader.ReadByte() + objectReader.ReadByte());
-            var source = Encoding.GetEncoding(932).GetString(sourceChars).TrimStart('.', '\\', '\0');
-
-            if (objectReader.ReadByte() != 255)
-                throw new InvalidDataException();
-        
             var fieldValues = new Dictionary<T, int>();
             objectReader.ReadBytes(discardInitialBytes);
 
