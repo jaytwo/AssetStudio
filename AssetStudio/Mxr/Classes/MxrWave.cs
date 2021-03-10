@@ -1,15 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using AssetStudio.Mxr.Fields;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
-    enum WaveField
-    {
-        RiffData = 16,
-        UnknownByte = 131
-    }
-
     class MxrWave : AudioClip
     {
         private const int WAVE_FORMAT_PCM = 0x0001;

@@ -1,19 +1,11 @@
-﻿using System;
+﻿using AssetStudio.Mxr.Fields;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
-    enum TableField
-    {
-        Unknown128 = 128,
-        Unknown129 = 129,
-        Unknown130 = 130,
-        Unknown131 = 131,
-        Unknown132 = 132
-    }
-
     class MxrTable : TextAsset
     {
         public string InfoText { get; set; }

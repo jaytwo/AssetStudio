@@ -1,13 +1,9 @@
-﻿using System;
+﻿using AssetStudio.Mxr.Fields;
+using System;
 using System.Collections.Generic;
 
 namespace AssetStudio.Mxr.Classes
 {
-    enum MidiField
-    {
-        MidiData = 32
-    }
-
     class MxrMidi : NamedObject
     {
         public MxrMidi(ObjectReader objectReader)

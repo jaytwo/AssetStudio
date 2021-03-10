@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AssetStudio.Mxr.Fields;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -7,18 +8,6 @@ using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
-    enum AnimationField
-    {
-        FrameBits = 32,
-        PositionBits = 33,
-        RotationBits = 34,
-        ScaleBits = 35,
-        Positions = 48,
-        Rotations = 49,
-        Scales = 50,
-        End = 255
-    }
-
     static class MxrAnimation
     {
         public static string Read(ObjectReader objectReader, int frameCount, out string description)

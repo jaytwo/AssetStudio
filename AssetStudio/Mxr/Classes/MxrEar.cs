@@ -1,14 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using AssetStudio.Mxr.Fields;
+using System.Collections.Generic;
 
 namespace AssetStudio.Mxr.Classes
 {
-    enum EarField
-    {
-        Distance = 16,
-        Rolloff = 17,
-        Doppler = 18
-    }
-
     class MxrEar : NamedObject, IMxrPropertyInfo
     {
         public string InfoText { get; private set; }

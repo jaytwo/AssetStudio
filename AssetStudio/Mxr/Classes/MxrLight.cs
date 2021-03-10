@@ -1,29 +1,9 @@
-﻿using System;
+﻿using AssetStudio.Mxr.Fields;
+using System;
 using System.Collections.Generic;
 
 namespace AssetStudio.Mxr.Classes
 {
-    enum LightField
-    {
-        LightType = 16,
-        Colour = 17,
-        Channels = 21,
-        CutOffAngle = 22,
-        Distance = 23,
-        Tag = 24,
-        CutOffAnglePhi = 25,
-        ChannelList = 26,
-        DropOffRate = 27,
-    }
-
-    enum LightType
-    {
-        Parallel = 0,
-        Point = 1,
-        Spot = 2,
-        Ambient = 3,
-    }
-
     class MxrLight : NamedObject, IMxrPropertyInfo
     {
         public string InfoText { get; private set; }

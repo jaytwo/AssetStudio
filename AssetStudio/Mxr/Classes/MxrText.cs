@@ -1,19 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using AssetStudio.Mxr.Fields;
+using System.Collections.Generic;
 using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
-    enum TextField
-    {
-        Colour = 16,
-        BackColour = 17,
-        Height = 18,
-        Size = 19,
-        Font = 21,
-        Byte22 = 22,
-        String = 32
-    }
-
     class MxrText : TextAsset
     {
         private string _infoText;
