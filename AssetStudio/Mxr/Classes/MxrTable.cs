@@ -24,7 +24,7 @@ namespace AssetStudio.Mxr.Classes
 
         protected override void Read()
         {
-            MxrObjectReader.Read<TableField>(this, ClassIDType.MonoScript, ReadField, endByte: 16, withHeader: false);
+            MxrObjectReader.Read<TableField>(this, ClassIDType.MonoScript, ReadField, endByte: 16, headerLevel: 0);
             m_Name = "Table";
             m_Script = Encoding.UTF8.GetBytes(InfoText);
         }

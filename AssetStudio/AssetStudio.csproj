@@ -134,6 +134,7 @@
     <Compile Include="Math\Vector3.cs" />
     <Compile Include="Math\Vector4.cs" />
     <Compile Include="Mxr\Classes\IMxrPropertyInfo.cs" />
+    <Compile Include="Mxr\Classes\MxrAnimation.cs" />
     <Compile Include="Mxr\Classes\MxrEvents.cs" />
     <Compile Include="Mxr\Classes\MxrTable.cs" />
     <Compile Include="Mxr\Classes\MxrMidi.cs" />
@@ -144,6 +145,7 @@
     <Compile Include="Mxr\Classes\MxrTexture.cs" />
     <Compile Include="Mxr\Classes\MxrModel.cs" />
     <Compile Include="Mxr\Classes\MxrText.cs" />
+    <Compile Include="Mxr\Classes\MxrTrack.cs" />
     <Compile Include="Mxr\Classes\MxrWave.cs" />
     <Compile Include="Mxr\MxrClassIDType.cs" />
     <Compile Include="Mxr\MxrSerializedFile.cs" />

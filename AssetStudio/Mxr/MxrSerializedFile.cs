@@ -99,13 +99,35 @@ namespace AssetStudio.Mxr
                             objectInfo.byteStart = reader2.Position;
 
                             var eventsObject = new MxrEvents(new ObjectReader(reader2, this, objectInfo));
-                            eventsObject.Read(tableObject.Strings, totalStart + totalLength);
-                            eventsObject.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                            eventsObject.Read(tableObject.Strings, totalStart + totalLength - 1);
+                            eventsObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                            m_Objects.Add(objectInfo);
                             AddObject(eventsObject);
-                            break;
+
+                            if (reader2.ReadByte() != 0 || reader2.ReadByte() != 32 || reader2.ReadByte() != 32)
+                                throw new InvalidDataException();
+
+                            // Tracks
+                            while (true)
+                            {
+                                if (reader2.ReadByte() != 16)
+                                    throw new InvalidDataException();
+                                objectInfo = new ObjectInfo();
+                                objectInfo.classID = (int)MxrClassIDType.Score;
+                                objectInfo.m_PathID = reader2.ReadInt32();
+
+                                if (reader2.ReadByte() != 17)
+                                    throw new InvalidDataException();
+                                objectInfo.byteStart = reader2.Position;
+
+                                var trackObject = new MxrTrack(new ObjectReader(reader2, this, objectInfo));
+                                trackObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                                m_Objects.Add(objectInfo);
+                                AddObject(trackObject);
+                            }
 
                         default:
-                            return;
+                            throw new InvalidDataException();
                     }
 
                     objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
