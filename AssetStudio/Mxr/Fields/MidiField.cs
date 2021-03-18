@@ -2,6 +2,7 @@
 {
     enum MidiField
     {
-        MidiData = 32
+        MidiData = 32,
+        End = 255
     }
 }

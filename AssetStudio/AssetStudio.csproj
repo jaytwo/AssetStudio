@@ -136,6 +136,7 @@
     <Compile Include="Mxr\Classes\IMxrPropertyInfo.cs" />
     <Compile Include="Mxr\Classes\MxrAnimation.cs" />
     <Compile Include="Mxr\Classes\MxrEvents.cs" />
+    <Compile Include="Mxr\Classes\MxrScore.cs" />
     <Compile Include="Mxr\Classes\MxrTable.cs" />
     <Compile Include="Mxr\Classes\MxrMidi.cs" />
     <Compile Include="Mxr\Classes\MxrEar.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="Mxr\Classes\MxrText.cs" />
     <Compile Include="Mxr\Classes\MxrTrack.cs" />
     <Compile Include="Mxr\Classes\MxrWave.cs" />
+    <Compile Include="Mxr\Fields\ScoreField.cs" />
     <Compile Include="Mxr\Fields\WaveField.cs" />
     <Compile Include="Mxr\Fields\TextureField.cs" />
     <Compile Include="Mxr\Fields\TextField.cs" />

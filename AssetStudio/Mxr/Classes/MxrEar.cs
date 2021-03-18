@@ -13,9 +13,13 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<EarField>(this, ClassIDType.AudioListener, ReadField);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<EarField, int> fieldValues, EarField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<EarField, int> fieldValues, EarField field)
         {
+            if (field == EarField.End)
+                return false;
+
             InfoText += $"{field}: {objectReader.ReadSingle()}\n";
+            return true;
         }
     }
 }

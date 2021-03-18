@@ -4,6 +4,7 @@
     {
         Distance = 16,
         Rolloff = 17,
-        Doppler = 18
+        Doppler = 18,
+        End = 255
     }
 }

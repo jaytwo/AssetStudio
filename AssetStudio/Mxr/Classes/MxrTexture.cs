@@ -29,10 +29,13 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<TextureField>(this, ClassIDType.Texture2D, ReadField);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<TextureField, int> fieldValues, TextureField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<TextureField, int> fieldValues, TextureField field)
         {
             switch (field)
             {
+                case TextureField.End:
+                    return false;
+
                 case TextureField.JpegData:
                     using (var jpeg = new Bitmap(new MemoryStream(objectReader.ReadBytes(objectReader.ReadInt32()))))
                     {
@@ -77,15 +80,15 @@ namespace AssetStudio.Mxr.Classes
                         _pixels = new MemoryStream(rgb);
                         image_data = new ResourceReader(new BinaryReader(_pixels), 0, rgb.Length);
                     }
-                    break;
+                    return true;
 
                 case TextureField.BmpColourTable:
                     _colours = objectReader.ReadUInt32Array(fieldValues[TextureField.Colours]);
-                    break;
+                    return true;
 
                 case TextureField.Tranparent:
                     _transparent = objectReader.ReadUInt32() | 0xff000000;
-                    break;
+                    return true;
 
                 case TextureField.BmpPixelData:
                     using (var memoryWriter = new BinaryWriter(_pixels = new MemoryStream(), Encoding.Default, true))
@@ -130,13 +133,13 @@ namespace AssetStudio.Mxr.Classes
 
                         image_data = new ResourceReader(new BinaryReader(_pixels), 0, (int)_pixels.Length);
                     }
-                    break;
+                    return true;
 
                 case TextureField.BitsPerPixel:
                 case TextureField.UnknownShort31:
                     fieldValues.Add(field, objectReader.ReadUInt16());
                     InfoText += $"{field}: {fieldValues[field]}\n";
-                    break;
+                    return true;
 
                 case TextureField.UnknownByte22:
                 case TextureField.UnknownByte27:
@@ -144,12 +147,12 @@ namespace AssetStudio.Mxr.Classes
                 case TextureField.UnknownByte129:
                     fieldValues.Add(field, objectReader.ReadByte());
                     InfoText += $"{field}: {fieldValues[field]}\n";
-                    break;
+                    return true;
 
                 case TextureField.UnknownArray99:
                     fieldValues.Add(field, objectReader.ReadInt32());
                     InfoText += $"{field}: {fieldValues[field]} [{string.Join(", ", Enumerable.Range(0, 12).Select(i => objectReader.ReadByte()))}]\n";
-                    break;
+                    return true;
 
                 case TextureField.AlphaMap:
                     fieldValues.Add(field, objectReader.ReadInt32());
@@ -167,12 +170,12 @@ namespace AssetStudio.Mxr.Classes
                                 _pixels.WriteByte(0);
                             }
                         }
-                    break;
+                    return true;
 
                 default:
                     fieldValues.Add(field, objectReader.ReadInt32());
                     InfoText += $"{field}: {fieldValues[field]}\n";
-                    break;
+                    return true;
             }
         }
 

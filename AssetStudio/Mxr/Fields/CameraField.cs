@@ -12,6 +12,7 @@
         FogBack = 35,
         Tag = 36,
         Unknown37 = 37,
-        Angle = 38
+        Angle = 38,
+        End = 255
     }
 }

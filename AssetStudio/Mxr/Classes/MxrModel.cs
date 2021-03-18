@@ -25,33 +25,36 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<ModelField>(this, ClassIDType.Mesh, ReadField);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<ModelField, int> fieldValues, ModelField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<ModelField, int> fieldValues, ModelField field)
         {
             switch (field)
             {
+                case ModelField.End:
+                    return false;
+
                 case ModelField.UnknownMarker19:
                 case ModelField.UnknownMarker34:
-                    break;
+                    return true;
 
                 case ModelField.UnknownShort150:
                     _group.Add(field, objectReader.ReadInt16());
-                    break;
+                    return true;
 
                 case ModelField.UnknownArray22:
                     var unknown22 = objectReader.ReadBytes((int)_group[ModelField.VertexCount]);
                     _group.Add(field, unknown22.Count());
-                    break;
+                    return true;
 
                 case ModelField.Vertices:
                     m_VertexCount = (int)_group[ModelField.VertexCount];
                     m_Vertices = objectReader.ReadSingleArray(3 * m_VertexCount);
-                    break;
+                    return true;
 
                 case ModelField.FacesSingle:
                     _group[field] = objectReader.ReadByte();
                     var indices = objectReader.ReadBytes((int)_group[ModelField.IndexCount]);
                     UnpackFaces(indices.Select(b => (ushort)b).ToArray());
-                    break;
+                    return true;
 
                 case ModelField.FacesDouble:
                     UnpackFaces(Enumerable.Range(0, (int)_group[ModelField.IndexCount])
@@ -66,7 +69,7 @@ namespace AssetStudio.Mxr.Classes
                         else
                             objectReader.BaseStream.Position--;
                     }
-                    break;
+                    return true;
 
                 case ModelField.FaceGroups:
                     var bitsPerItem = objectReader.ReadByte();
@@ -83,18 +86,18 @@ namespace AssetStudio.Mxr.Classes
                     if (byteCount != Math.Ceiling(byteCount))
                         faceGroups = faceGroups.Take(faceGroups.Length - 1).ToArray();
                     _faceGroups = faceGroups.Select(b => (short)b).ToArray();
-                    break;
+                    return true;
 
                 case ModelField.UnknownArray113:
                     _group.Add(field, objectReader.ReadBytes(12));
-                    break;
+                    return true;
 
                 case ModelField.UnknownArray115:
                     _group.Add(field, Enumerable.Range(0, 6)
                         .Select(i => objectReader.ReadUInt32())
                         .Where(i => i != uint.MaxValue)
                         .ToArray());
-                    break;
+                    return true;
 
                 case ModelField.MaterialPower:
                 case ModelField.MaterialAmbient:
@@ -103,12 +106,12 @@ namespace AssetStudio.Mxr.Classes
                     _group.Add(field, Enumerable.Range(0, 4)
                         .Select(i => objectReader.ReadSingle())
                         .ToArray());
-                    break;
+                    return true;
 
                 case ModelField.UnknownShort149:
                 case ModelField.UnknownShort151:
                     _group.Add(field, objectReader.ReadInt16());
-                    break;
+                    return true;
 
                 case ModelField.FaceCount:
                 case ModelField.IndexCount:
@@ -137,7 +140,7 @@ namespace AssetStudio.Mxr.Classes
                     if (_group == null || _group.ContainsKey(field))
                         _groups.Add(_group = new Group());
                     _group.Add(field, objectReader.ReadInt32());
-                    break;
+                    return true;
 
                 case ModelField.UnknownFloat148:
                 case ModelField.TextureDivisionU:
@@ -150,11 +153,11 @@ namespace AssetStudio.Mxr.Classes
                 case ModelField.UnknownFloat196:
                 case ModelField.UnknownFloat197:
                     _group.Add(field, objectReader.ReadSingle());
-                    break;
+                    return true;
 
                 case ModelField.GroupName:
                     _group.Add(field, _groups.Count + " " + MxrObjectReader.ReadString(objectReader));
-                    break;
+                    return true;
 
                 default:
                     throw new NotImplementedException();

@@ -3,6 +3,7 @@
     enum WaveField
     {
         RiffData = 16,
-        UnknownByte = 131
+        UnknownByte = 131,
+        End = 255
     }
 }

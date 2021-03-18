@@ -24,5 +24,6 @@
         UnknownInt101 = 101,
         UnknownByte128 = 128,
         UnknownByte129 = 129,
+        End = 255
     }
 }

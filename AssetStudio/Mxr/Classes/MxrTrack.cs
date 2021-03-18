@@ -17,26 +17,24 @@ namespace AssetStudio.Mxr.Classes
 
         protected override void Read()
         {
-            MxrObjectReader.Read<TrackField>(this, ClassIDType.MonoScript, ReadField, 0, endCondition: EndCondition, headerLevel: 1);
+            MxrObjectReader.Read<TrackField>(this, ClassIDType.MonoScript, ReadField, 0, withHeader: false);
         }
 
-        private bool EndCondition(byte fieldByte)
-        {
-            if (fieldByte == 255 && --_depth < 0)
-            {
-                m_Script = Encoding.UTF8.GetBytes(_infoText);
-                return true;
-            }
-
-            return false;
-        }
-
-        private void ReadField(ObjectReader objectReader, Dictionary<TrackField, int> fieldValues, TrackField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<TrackField, int> fieldValues, TrackField field)
         {
             string value = null;
 
             switch (field)
             {
+                case TrackField.End:
+                    if (--_depth < 0)
+                    {
+                        m_Script = Encoding.UTF8.GetBytes(_infoText);
+                        return false;
+                    }
+                    fieldValues.Clear();
+                    break;
+
                 case TrackField.Frames:
                     fieldValues[field] = objectReader.ReadInt32();
                     if (fieldValues[field] == 0)
@@ -67,7 +65,7 @@ namespace AssetStudio.Mxr.Classes
                     }
                     if (objectReader.ReadByte() != 1)
                         throw new InvalidDataException();
-                    return;
+                    return true;
 
                 case TrackField.UnknownArray35:
                     var ints = ReadArray(objectReader, fieldValues, field, s => objectReader.ReadInt32());
@@ -171,10 +169,6 @@ namespace AssetStudio.Mxr.Classes
                         objectReader.BaseStream.Position--;
                     break;
 
-                case TrackField.End:
-                    fieldValues.Clear();
-                    break;
-
                 default:
                     fieldValues[field] = objectReader.ReadInt32();
                     break;
@@ -186,6 +180,8 @@ namespace AssetStudio.Mxr.Classes
                 _infoText += "\n";
             else
                 _infoText += $"{field} = {value ?? fieldValues[field].ToString()}\n";
+
+            return true;
         }
 
         private string ReadArray(BinaryReader objectReader, Dictionary<TrackField, int> fieldValues, TrackField field, Func<BinaryReader, object> read)

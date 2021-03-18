@@ -12,13 +12,12 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<MidiField>(this, ClassIDType.AudioImporter, ReadField);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<MidiField, int> fieldValues, MidiField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<MidiField, int> fieldValues, MidiField field)
         {
             switch (field)
             {
-                default:
-                    fieldValues[field] = objectReader.ReadInt32();
-                    break;
+                case MidiField.End:
+                    return false;
 
                 case MidiField.MidiData:
                     ushort chunks = 2;
@@ -36,7 +35,11 @@ namespace AssetStudio.Mxr.Classes
                             chunks = BitConverter.ToUInt16(data, 2);
                         }
                     }
-                    break;
+                    return true;
+
+                default:
+                    fieldValues[field] = objectReader.ReadInt32();
+                    return true;
             }
         }
     }

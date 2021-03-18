@@ -18,10 +18,13 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<WaveField>(this, ClassIDType.AudioClip, ReadField);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<WaveField, int> fieldValues, WaveField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<WaveField, int> fieldValues, WaveField field)
         {
             switch (field)
             {
+                case WaveField.End:
+                    return false;
+
                 case WaveField.RiffData:
                     var unknown1 = objectReader.ReadBytes(6);
                     var format = objectReader.ReadUInt16();
@@ -69,15 +72,15 @@ namespace AssetStudio.Mxr.Classes
                     m_Type = AudioType.WAV;
                     m_Size = audioData.Length;
                     m_AudioData = new ResourceReader(new BinaryReader(audioData), 0, (int)audioData.Length);
-                    break;
+                    return true;
 
                 case WaveField.UnknownByte:
                     fieldValues.Add(field, objectReader.ReadByte());
-                    break;
+                    return true;
 
                 default:
                     fieldValues.Add(field, objectReader.ReadInt32());
-                    break;
+                    return true;
             }
         }
     }

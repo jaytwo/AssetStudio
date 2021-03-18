@@ -15,10 +15,13 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<MovieField>(this, ClassIDType.MovieTexture, ReadField, 0);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<MovieField, int> fieldValues, MovieField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<MovieField, int> fieldValues, MovieField field)
         {
             switch (field)
             {
+                case MovieField.End:
+                    return false;
+
                 case MovieField.UnknownByte19:
                 case MovieField.UnknownByte20:
                 case MovieField.UnknownByte21:
@@ -26,7 +29,7 @@ namespace AssetStudio.Mxr.Classes
                 case MovieField.UnknownByte23:
                 case MovieField.UnknownByte24:
                     InfoText += $"{field}: {objectReader.ReadByte()}\n";
-                    break;
+                    return true;
 
                 case MovieField.UnknownInt16:
                 case MovieField.UnknownInt17:
@@ -35,11 +38,11 @@ namespace AssetStudio.Mxr.Classes
                 case MovieField.Height:
                 case MovieField.UnknownInt52:
                     InfoText += $"{field}: {objectReader.ReadInt32()}\n";
-                    break;
+                    return true;
 
                 case MovieField.UnknownArray32:
                     InfoText += $"{field}: [{string.Join(", ", Enumerable.Range(0, objectReader.ReadInt32()).Select(i => objectReader.ReadByte()))}]\n";
-                    break;
+                    return true;
 
                 default:
                     throw new NotImplementedException();

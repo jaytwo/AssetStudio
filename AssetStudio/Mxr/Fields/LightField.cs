@@ -11,6 +11,7 @@
         CutOffAnglePhi = 25,
         ChannelList = 26,
         DropOffRate = 27,
+        End = 255
     }
 
     enum LightType

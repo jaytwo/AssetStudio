@@ -53,5 +53,6 @@
         UnknownInt200 = 200,
         UnknownInt201 = 201,
         UnknownInt202 = 202,
+        End = 255
     }
 }

@@ -109,19 +109,25 @@ namespace AssetStudio.Mxr
                             if (reader2.ReadByte() != 0 || reader2.ReadByte() != 32 || reader2.ReadByte() != 32)
                                 throw new InvalidDataException();
 
-                            // Tracks
+                            // Scores and tracks
                             while (true)
                             {
-                                if (reader2.ReadByte() != 16)
+                                objectInfo = new ObjectInfo();
+                                objectInfo.classID = reader2.ReadByte();
+                                objectInfo.m_PathID = pathId--;
+                                objectInfo.byteStart = --reader2.Position;
+
+                                if (objectInfo.classID != (int)MxrClassIDType.Score)
                                     return;
 
-                                objectInfo = new ObjectInfo();
-                                objectInfo.classID = (int)MxrClassIDType.Score;
-                                objectInfo.m_PathID = reader2.ReadInt32(); // TODO: Show this somewhere
-                                objectInfo.m_PathID = pathId--;
+                                var scoreObject = new MxrScore(new ObjectReader(reader2, this, objectInfo));
+                                scoreObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                                m_Objects.Add(objectInfo);
+                                AddObject(scoreObject);
 
-                                if (reader2.ReadByte() != 17)
-                                    throw new InvalidDataException();
+                                objectInfo = new ObjectInfo();
+                                objectInfo.classID = (int)MxrClassIDType.Track;
+                                objectInfo.m_PathID = pathId--;
                                 objectInfo.byteStart = reader2.Position;
 
                                 var trackObject = new MxrTrack(new ObjectReader(reader2, this, objectInfo));

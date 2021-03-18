@@ -15,6 +15,7 @@
         Movie = 9,
         Sound3d = 11,
         Ear = 13,
-        Score = 32
+        Score = 16,
+        Track = 32
     }
 }

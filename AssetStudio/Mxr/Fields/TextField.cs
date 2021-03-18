@@ -8,6 +8,7 @@
         Size = 19,
         Font = 21,
         Byte22 = 22,
-        String = 32
+        String = 32,
+        End = 255
     }
 }

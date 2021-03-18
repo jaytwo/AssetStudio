@@ -16,20 +16,21 @@ namespace AssetStudio.Mxr.Classes
 
         protected override void Read()
         {
-            MxrObjectReader.Read<TableField>(this, ClassIDType.MonoScript, ReadField, endCondition: EndCondition, headerLevel: 0);
+            MxrObjectReader.Read<TableField>(this, ClassIDType.MonoScript, ReadField, withHeader: false);
             m_Name = "Table";
             m_Script = Encoding.UTF8.GetBytes(InfoText);
         }
 
-        private static bool EndCondition(byte fieldByte) => fieldByte == 16;
-
-        private void ReadField(ObjectReader objectReader, Dictionary<TableField, int> fieldValues, TableField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<TableField, int> fieldValues, TableField field)
         {
             var address = 0;
             var value = field.ToString() + " = ";
 
             switch (field)
             {
+                case TableField.End:
+                    return false;
+
                 case TableField.Unknown128:
                     var header = objectReader.ReadBytes(2);
                     var dataLength = 0;
@@ -90,6 +91,8 @@ namespace AssetStudio.Mxr.Classes
 
             if (objectReader.ReadUInt16() != 0)
                 objectReader.BaseStream.Position--;
+
+            return true;
         }
     }
 }

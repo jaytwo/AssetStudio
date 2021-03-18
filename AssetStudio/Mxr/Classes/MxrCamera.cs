@@ -13,23 +13,26 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<CameraField>(this, ClassIDType.Camera, ReadField);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<CameraField, int> fieldValues, CameraField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<CameraField, int> fieldValues, CameraField field)
         {
             switch (field)
             {
+                case CameraField.End:
+                    return false;
+
                 case CameraField.FogColour:
                     InfoText += $"{field}: {string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte())}\n";
                     objectReader.ReadByte();
-                    break;
+                    return true;
 
                 case CameraField.FogEnabled:
                 case CameraField.Unknown37:
                     InfoText += $"{field}: {objectReader.ReadInt32()}\n";
-                    break;
+                    return true;
 
                 default:
                     InfoText += $"{field}: {objectReader.ReadSingle()}\n";
-                    break;
+                    return true;
             }
         }
     }

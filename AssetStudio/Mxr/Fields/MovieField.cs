@@ -14,6 +14,7 @@
         UnknownArray32 = 32,
         Width = 48,
         Height = 49,
-        UnknownInt52 = 52
+        UnknownInt52 = 52,
+        End = 255
     }
 }

@@ -14,26 +14,29 @@ namespace AssetStudio.Mxr.Classes
             MxrObjectReader.Read<LightField>(this, ClassIDType.Light, ReadField);
         }
 
-        private void ReadField(ObjectReader objectReader, Dictionary<LightField, int> fieldValues, LightField field)
+        private bool ReadField(ObjectReader objectReader, Dictionary<LightField, int> fieldValues, LightField field)
         {
             switch (field)
             {
+                case LightField.End:
+                    return false;
+
                 case LightField.LightType:
                     InfoText += $"{field}: {(LightType)objectReader.ReadByte()}\n";
-                    break;
+                    return true;
 
                 case LightField.CutOffAngle:
                 case LightField.CutOffAnglePhi:
                     InfoText += $"{field}: {Math.Round(objectReader.ReadSingle() * 180.0 / Math.PI)}\n";
-                    break;
+                    return true;
 
                 case LightField.Colour:
                     InfoText += $"{field}: {string.Join(", ", objectReader.ReadByte(), objectReader.ReadByte(), objectReader.ReadByte())}\n";
-                    break;
+                    return true;
 
                 default:
                     InfoText += $"{field}: {objectReader.ReadSingle()}\n";
-                    break;
+                    return true;
             }
         }
     }
