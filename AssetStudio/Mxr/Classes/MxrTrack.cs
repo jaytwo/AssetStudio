@@ -3,22 +3,33 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
-    class MxrTrack : NamedObject, IMxrPropertyInfo
+    class MxrTrack : TextAsset
     {
         private int _depth;
-
-        public string InfoText { get; private set; }
+        private string _infoText;
 
         public MxrTrack(ObjectReader objectReader)
-            : base(objectReader)
+            : base(objectReader) { }
+
+        protected override void Read()
         {
             MxrObjectReader.Read<TrackField>(this, ClassIDType.MonoScript, ReadField, 0, endCondition: EndCondition, headerLevel: 1);
         }
 
-        private bool EndCondition(byte fieldByte) => fieldByte == 255 && --_depth < 0;
+        private bool EndCondition(byte fieldByte)
+        {
+            if (fieldByte == 255 && --_depth < 0)
+            {
+                m_Script = Encoding.UTF8.GetBytes(_infoText);
+                return true;
+            }
+
+            return false;
+        }
 
         private void ReadField(ObjectReader objectReader, Dictionary<TrackField, int> fieldValues, TrackField field)
         {
@@ -170,11 +181,11 @@ namespace AssetStudio.Mxr.Classes
             }
 
             if (field == TrackField.Start && fieldValues.Count == 1)
-                InfoText += $"-- TRACK ({fieldValues[field]}) --\n";
+                _infoText += $"-- TRACK ({fieldValues[field]}) --\n";
             else if (field == TrackField.End)
-                InfoText += "\n";
+                _infoText += "\n";
             else
-                InfoText += $"{field} = {value ?? fieldValues[field].ToString()}\n";
+                _infoText += $"{field} = {value ?? fieldValues[field].ToString()}\n";
         }
 
         private string ReadArray(BinaryReader objectReader, Dictionary<TrackField, int> fieldValues, TrackField field, Func<BinaryReader, object> read)
