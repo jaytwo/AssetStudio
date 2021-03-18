@@ -15,8 +15,10 @@ namespace AssetStudio.Mxr.Classes
         public MxrTrack(ObjectReader objectReader)
             : base(objectReader)
         {
-            MxrObjectReader.Read<TrackField>(this, ClassIDType.MonoScript, ReadField, 0, headerLevel: 1);
+            MxrObjectReader.Read<TrackField>(this, ClassIDType.MonoScript, ReadField, 0, endCondition: EndCondition, headerLevel: 1);
         }
+
+        private bool EndCondition(byte fieldByte) => fieldByte == 255 && --_depth < 0;
 
         private void ReadField(ObjectReader objectReader, Dictionary<TrackField, int> fieldValues, TrackField field)
         {

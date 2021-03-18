@@ -80,8 +80,10 @@ namespace AssetStudio.Mxr
                             var totalLength = reader2.ReadInt32();
                             var totalStart = reader2.BaseStream.Position;
                             var scriptBytes = reader2.ReadBytes(reader2.ReadInt32());
-                            
+                            var pathId = -1;
+
                             objectInfo.classID = (int)MxrClassIDType.Script;
+                            objectInfo.m_PathID = pathId--;
                             objectInfo.byteStart = reader2.Position;
 
                             var tableObject = new MxrTable(new ObjectReader(reader2, this, objectInfo));
@@ -95,7 +97,7 @@ namespace AssetStudio.Mxr
                             // Events
                             objectInfo = new ObjectInfo();
                             objectInfo.classID = (int)MxrClassIDType.Script;
-                            objectInfo.m_PathID = 1;
+                            objectInfo.m_PathID = pathId--;
                             objectInfo.byteStart = reader2.Position;
 
                             var eventsObject = new MxrEvents(new ObjectReader(reader2, this, objectInfo));
@@ -111,10 +113,12 @@ namespace AssetStudio.Mxr
                             while (true)
                             {
                                 if (reader2.ReadByte() != 16)
-                                    throw new InvalidDataException();
+                                    return;
+
                                 objectInfo = new ObjectInfo();
                                 objectInfo.classID = (int)MxrClassIDType.Score;
-                                objectInfo.m_PathID = reader2.ReadInt32();
+                                objectInfo.m_PathID = reader2.ReadInt32(); // TODO: Show this somewhere
+                                objectInfo.m_PathID = pathId--;
 
                                 if (reader2.ReadByte() != 17)
                                     throw new InvalidDataException();

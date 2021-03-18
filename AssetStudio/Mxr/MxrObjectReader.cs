@@ -11,9 +11,12 @@ namespace AssetStudio.Mxr
             ClassIDType type,
             Action<ObjectReader, Dictionary<T, int>, T> readField,
             int discardInitialBytes = 1,
-            byte endByte = 255,
+            Func<byte, bool> endCondition = null,
             byte headerLevel = 2) where T : Enum
         {
+            if (endCondition == null)
+                endCondition = DefaultEndCondition;
+
             namedObject.type = type;
 
             var objectReader = namedObject.reader;
@@ -59,20 +62,24 @@ namespace AssetStudio.Mxr
 
             while (true)
             {
-                var eof = objectReader.Position == objectReader.BaseStream.Length;
-                var fieldByte = eof ? endByte : objectReader.ReadByte();
+                // Check for end of file
+                if (objectReader.Position == objectReader.BaseStream.Length)
+                    return fieldValues;
+
+                var fieldByte = objectReader.ReadByte();
                 var field = (T)Enum.ToObject(typeof(T), fieldByte);
 
-                if (fieldByte == endByte)
+                if (endCondition(fieldByte))
                 {
-                    if (!eof)
-                        fieldValues[field] = objectReader.ReadByte();
-
+                    fieldValues[field] = objectReader.ReadByte();
                     return fieldValues;
                 }
-                else readField(objectReader, fieldValues, field);
+                
+                readField(objectReader, fieldValues, field);
             }
         }
+
+        private static bool DefaultEndCondition(byte fieldByte) => fieldByte == 255;
 
         public static string ReadString(ObjectReader objectReader) =>
             Encoding.GetEncoding(932).GetString(objectReader.ReadBytes(objectReader.ReadInt32()));

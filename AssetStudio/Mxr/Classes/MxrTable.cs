@@ -16,10 +16,12 @@ namespace AssetStudio.Mxr.Classes
 
         protected override void Read()
         {
-            MxrObjectReader.Read<TableField>(this, ClassIDType.MonoScript, ReadField, endByte: 16, headerLevel: 0);
+            MxrObjectReader.Read<TableField>(this, ClassIDType.MonoScript, ReadField, endCondition: EndCondition, headerLevel: 0);
             m_Name = "Table";
             m_Script = Encoding.UTF8.GetBytes(InfoText);
         }
+
+        private static bool EndCondition(byte fieldByte) => fieldByte == 16;
 
         private void ReadField(ObjectReader objectReader, Dictionary<TableField, int> fieldValues, TableField field)
         {
