@@ -106,8 +106,8 @@ namespace AssetStudio.Mxr
                             m_Objects.Add(objectInfo);
                             AddObject(eventsObject);
 
-                            if (reader2.ReadByte() != 0 || reader2.ReadByte() != 32 || reader2.ReadByte() != 32)
-                                throw new InvalidDataException();
+                            while ((new byte[] { 32, 0 }).Contains(reader2.ReadByte())) { }
+                            reader2.Position--;
 
                             // Scores and tracks
                             while (true)
@@ -125,15 +125,27 @@ namespace AssetStudio.Mxr
                                 m_Objects.Add(objectInfo);
                                 AddObject(scoreObject);
 
-                                objectInfo = new ObjectInfo();
-                                objectInfo.classID = (int)MxrClassIDType.Track;
-                                objectInfo.m_PathID = pathId--;
-                                objectInfo.byteStart = reader2.Position;
+                                while (reader2.ReadByte() == 32)
+                                {
+                                    if (reader2.ReadByte() != 16)
+                                        throw new InvalidDataException();
 
-                                var trackObject = new MxrTrack(new ObjectReader(reader2, this, objectInfo));
-                                trackObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
-                                m_Objects.Add(objectInfo);
-                                AddObject(trackObject);
+                                    var trackIndex = reader2.ReadInt32();
+
+                                    objectInfo = new ObjectInfo();
+                                    objectInfo.classID = (int)MxrClassIDType.Track;
+                                    objectInfo.m_PathID = pathId--;
+                                    objectInfo.byteStart = reader2.Position;
+
+                                    var trackObject = new MxrTrack(new ObjectReader(reader2, this, objectInfo));
+                                    trackObject.m_Name = $"Track{trackIndex}";
+                                    trackObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
+                                    m_Objects.Add(objectInfo);
+                                    AddObject(trackObject);
+                                }
+
+                                reader2.Position--;
+                                MxrObjectReader.Read<Fields.ScoreField>(scoreObject.reader, scoreObject.ReadField);
                             }
 
                         default:

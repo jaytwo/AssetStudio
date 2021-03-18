@@ -9,7 +9,6 @@ namespace AssetStudio.Mxr.Classes
 {
     class MxrTrack : TextAsset
     {
-        private int _depth;
         private string _infoText;
 
         public MxrTrack(ObjectReader objectReader)
@@ -27,13 +26,9 @@ namespace AssetStudio.Mxr.Classes
             switch (field)
             {
                 case TrackField.End:
-                    if (--_depth < 0)
-                    {
-                        m_Script = Encoding.UTF8.GetBytes(_infoText);
-                        return false;
-                    }
-                    fieldValues.Clear();
-                    break;
+                    m_Script = Encoding.UTF8.GetBytes(_infoText);
+                    objectReader.Position--;
+                    return false;
 
                 case TrackField.Frames:
                     fieldValues[field] = objectReader.ReadInt32();
@@ -53,16 +48,6 @@ namespace AssetStudio.Mxr.Classes
                     break;
 
                 case TrackField.Start:
-                    if (!fieldValues.Any())
-                    {
-                        // Start of track
-                        if (objectReader.ReadByte() != 16)
-                            throw new InvalidDataException();
-
-                        fieldValues[field] = objectReader.ReadInt32();
-                        _depth++;
-                        break;
-                    }
                     if (objectReader.ReadByte() != 1)
                         throw new InvalidDataException();
                     return true;
@@ -109,25 +94,7 @@ namespace AssetStudio.Mxr.Classes
                     break;
 
                 case TrackField.UnknownArray33:
-                    if (_depth > 0)
-                        goto case TrackField.UnknownArray37;
-
-                    value = ReadArray(objectReader, fieldValues, field, s => objectReader.ReadByte()) + Environment.NewLine;
-                    break;
-
                 case TrackField.UnknownArray34:
-                    if (_depth > 0)
-                        goto case TrackField.UnknownArray37;
-
-                    var strings = new List<object>();
-                    for (int i = 0; objectReader.ReadUInt32() != UInt32.MaxValue; i++)
-                    {
-                        objectReader.BaseStream.Position -= 4;
-                        strings.Add($"    {objectReader.ReadInt32()}, {MxrObjectReader.ReadString(objectReader)}, {objectReader.ReadInt32()}");
-                    }
-                    value = strings.Count + " {\r\n" + string.Join(Environment.NewLine, strings) + Environment.NewLine + "}";
-                    break;
-
                 case TrackField.UnknownArray37:
                 case TrackField.UnknownArray38:
                     var section = field;
@@ -174,13 +141,7 @@ namespace AssetStudio.Mxr.Classes
                     break;
             }
 
-            if (field == TrackField.Start && fieldValues.Count == 1)
-                _infoText += $"-- TRACK ({fieldValues[field]}) --\n";
-            else if (field == TrackField.End)
-                _infoText += "\n";
-            else
-                _infoText += $"{field} = {value ?? fieldValues[field].ToString()}\n";
-
+            _infoText += $"{field} = {value ?? fieldValues[field].ToString()}\n";
             return true;
         }
 
@@ -200,11 +161,6 @@ namespace AssetStudio.Mxr.Classes
 
             return $"Section {(int)field}" + Environment.NewLine +
                 "    Objects[" + items.Length + "] = " + string.Join(", ", items);
-        }
-
-        protected bool OnFinish(BinaryReader source, BinaryWriter destination)
-        {
-            return --_depth < 0;
         }
     }
 }

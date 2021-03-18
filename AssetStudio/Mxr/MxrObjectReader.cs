@@ -47,8 +47,15 @@ namespace AssetStudio.Mxr
                     throw new InvalidDataException();
             }
 
-            var fieldValues = new Dictionary<T, int>();
             objectReader.ReadBytes(discardInitialBytes);
+            return Read(objectReader, readField);
+        }
+
+
+        public static Dictionary<T, int> Read<T>(ObjectReader objectReader,
+            Func<ObjectReader, Dictionary<T, int>, T, bool> readField) where T : Enum
+        {
+            var fieldValues = new Dictionary<T, int>();
 
             while (true)
             {
