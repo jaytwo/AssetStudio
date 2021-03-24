@@ -142,7 +142,7 @@ namespace AssetStudio.Mxr
                                     objectInfo.byteStart = reader2.Position;
 
                                     var trackObject = new MxrTrack(new ObjectReader(reader2, this, objectInfo));
-                                    trackObject.m_Name = $"Track{trackIndex}";
+                                    trackObject.m_Name = $"{scoreObject.m_Name} {trackIndex}";
                                     trackObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
                                     m_Objects.Add(objectInfo);
                                     AddObject(trackObject);

@@ -42,8 +42,7 @@ namespace AssetStudio.Mxr.Classes
                         if (objectReader.ReadByte() != 32)
                             throw new InvalidDataException();
 
-                        var animationData = MxrAnimation.Read(objectReader, fieldValues[TrackField.Frames], out value);
-                        value += $" ({animationData.Length})";
+                        value = MxrAnimation.Read(objectReader, fieldValues[TrackField.Frames]);
                     }
                     break;
 

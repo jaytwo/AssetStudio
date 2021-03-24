@@ -10,7 +10,7 @@ namespace AssetStudio.Mxr.Classes
 {
     static class MxrAnimation
     {
-        public static string Read(ObjectReader objectReader, int frameCount, out string description)
+        public static string Read(ObjectReader objectReader, int frameCount)
         {
             var field = AnimationField.FrameBits;
             var counts = new List<int>();
@@ -99,8 +99,7 @@ namespace AssetStudio.Mxr.Classes
                 frame += frameRepeats + length;
             }
 
-            description = string.Join(" + ", counts);
-            return destination.ToString();
+            return string.Join(" + ", counts) + Environment.NewLine + destination.ToString();
         }
 
         private static void ReadBitArray(ObjectReader objectReader, StringBuilder destination, AnimationField field, List<int> counts, int count)
@@ -110,7 +109,7 @@ namespace AssetStudio.Mxr.Classes
             counts.Add(count);
 
             destination.AppendLine(field.ToString());
-            destination.AppendLine($"    Bits[{bits.Length}]: " + string.Join(string.Empty, bits.Cast<bool>().Select(b => b ? "1" : "0")));
+            destination.AppendLine($"    [{bits.Length}]: {string.Join(string.Empty, bits.Cast<bool>().Select(b => b ? "1" : "0"))}");
         }
     }
 }

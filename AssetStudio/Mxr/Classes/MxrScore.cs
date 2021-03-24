@@ -3,15 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace AssetStudio.Mxr.Classes
 {
-    class MxrScore : NamedObject, IMxrPropertyInfo
+    class MxrScore : TextAsset
     {
-        public string InfoText { get; private set; }
+        private string _infoText;
 
         public MxrScore(ObjectReader objectReader)
-            : base(objectReader)
+            : base(objectReader) { }
+
+        protected override void Read()
         {
             MxrObjectReader.Read<ScoreField>(this, ClassIDType.MonoScript, ReadField, 0, withHeader: false);
         }
@@ -21,10 +24,11 @@ namespace AssetStudio.Mxr.Classes
             switch (field)
             {
                 case ScoreField.End:
+                    m_Script = Encoding.UTF8.GetBytes(_infoText);
                     return false;
 
                 case ScoreField.Index:
-                    InfoText += $"{field}: {objectReader.ReadInt32()}\n";
+                    _infoText += $"{field}: {objectReader.ReadInt32()}\n";
                     return true;
 
                 case ScoreField.Name:
@@ -33,7 +37,19 @@ namespace AssetStudio.Mxr.Classes
                     return false;
 
                 case ScoreField.UnknownArray33:
-                    InfoText += $"{field}: {ReadArray(objectReader, fieldValues, field, s => objectReader.ReadByte())}\n";
+                    var header = objectReader.ReadByte();
+                    if (header != 0 && header != 255)
+                        throw new InvalidDataException();
+
+                    fieldValues[field] = objectReader.ReadInt32();
+                    if (header == 255)
+                        fieldValues[field] = 0;
+
+                    var bytes = Enumerable.Range(0, fieldValues[field])
+                        .Select(i => objectReader.ReadByte())
+                        .ToList();
+
+                    _infoText += $"{field}: {bytes.Count} {{\n    {string.Join(",", bytes)}\n}}\n";
                     return true;
 
                 case ScoreField.UnknownArray34:
@@ -43,30 +59,12 @@ namespace AssetStudio.Mxr.Classes
                         objectReader.BaseStream.Position -= 4;
                         strings.Add($"    {objectReader.ReadInt32()}, {MxrObjectReader.ReadString(objectReader)}, {objectReader.ReadInt32()}");
                     }
-                    InfoText += $"{field}: {strings.Count} {{\n{string.Join(Environment.NewLine, strings)}\n}}\n";
+                    _infoText += $"{field}: {strings.Count} {{\n{string.Join(Environment.NewLine, strings)}\n}}\n";
                     return true;
 
                 default:
                     throw new InvalidDataException();
             }
-        }
-
-        private string ReadArray(BinaryReader objectReader, Dictionary<ScoreField, int> fieldValues, ScoreField field, Func<BinaryReader, object> read)
-        {
-            var header = objectReader.ReadByte();
-            if (header != 0 && header != 255)
-                throw new InvalidDataException();
-
-            fieldValues[field] = objectReader.ReadInt32();
-            if (header == 255)
-                fieldValues[field] = 0;
-
-            var items = Enumerable.Range(0, fieldValues[field])
-                .Select(i => read(objectReader))
-                .ToArray();
-
-            return $"Section {(int)field}" + Environment.NewLine +
-                "    Objects[" + items.Length + "] = " + string.Join(", ", items);
         }
     }
 }
