@@ -63,7 +63,7 @@ namespace AssetStudio.Mxr
                             if (reader2.ReadByte() != 17)
                                 throw new InvalidDataException();
 
-                            objectInfo.m_PathID = (objectInfo.classID + 1) * 1000 + reader2.ReadInt32();
+                            objectInfo.m_PathID = GetPathID(objectInfo.classID, reader2.ReadInt32());
 
                             if (reader2.ReadByte() != 32 || reader2.ReadByte() != 16)
                                 throw new InvalidDataException();
@@ -141,8 +141,7 @@ namespace AssetStudio.Mxr
                                     objectInfo.m_PathID = pathId--;
                                     objectInfo.byteStart = reader2.Position;
 
-                                    var trackObject = new MxrTrack(new ObjectReader(reader2, this, objectInfo));
-                                    trackObject.m_Name = $"{scoreObject.m_Name} {trackIndex}";
+                                    var trackObject = new MxrTrack(new ObjectReader(reader2, this, objectInfo), trackIndex);
                                     trackObject.byteSize = objectInfo.byteSize = (uint)(reader2.Position - objectInfo.byteStart);
                                     m_Objects.Add(objectInfo);
                                     AddObject(trackObject);
@@ -218,5 +217,7 @@ namespace AssetStudio.Mxr
                     decompressed.Write(bytes, 0, bytes.Length);
                 }
         }
+
+        public static long GetPathID(int classId, int index) => (classId + 1) * 1000 + index;
     }
 }

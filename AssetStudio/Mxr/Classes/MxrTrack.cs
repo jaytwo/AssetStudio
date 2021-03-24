@@ -9,13 +9,21 @@ namespace AssetStudio.Mxr.Classes
 {
     class MxrTrack : TextAsset
     {
+        private Dictionary<long, Object> _objectsDic;
         private string _infoText;
 
-        public MxrTrack(ObjectReader objectReader)
-            : base(objectReader) { }
+        public MxrTrack(ObjectReader objectReader, int index)
+            : base(objectReader)
+        {
+            if (index != -1)
+                m_Name = $"{index} {m_Name}";
+
+            m_Name = "  " + m_Name;
+        }
 
         protected override void Read()
         {
+            _objectsDic = ((MxrSerializedFile)this.reader.assetsFile).ObjectsDic;
             MxrObjectReader.Read<TrackField>(this, ClassIDType.MonoScript, ReadField, 0, withHeader: false);
         }
 
@@ -103,9 +111,26 @@ namespace AssetStudio.Mxr.Classes
 
                 case TrackField.Type:
                     fieldValues[field] = objectReader.ReadInt32();
-                    value = ((MxrClassIDType)fieldValues[field]).ToString();
-                    if (fieldValues.ContainsKey(TrackField.UnknownByte41) && objectReader.ReadByte() != 255)
-                        objectReader.BaseStream.Position--;
+                    if (fieldValues.ContainsKey(TrackField.UnknownByte41))
+                    {
+                        if (objectReader.ReadByte() != 255)
+                            objectReader.BaseStream.Position--;
+                    }
+                    else
+                    {
+                        if (objectReader.ReadByte() != (byte)TrackField.Index)
+                            throw new InvalidDataException();
+
+                        m_Name = ((MxrClassIDType)fieldValues[field]).ToString();
+                        var objectIndex = objectReader.ReadInt32();
+
+                        if (_objectsDic.TryGetValue(MxrSerializedFile.GetPathID(fieldValues[field], objectIndex), out var namedObject))
+                            m_Name += $" {objectIndex} ({((NamedObject)namedObject).m_Name})";
+                        else if (objectIndex != -1)
+                            m_Name += $" {objectIndex}";
+
+                        value = m_Name;
+                    }
                     break;
 
                 default:

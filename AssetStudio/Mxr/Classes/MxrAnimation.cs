@@ -99,7 +99,7 @@ namespace AssetStudio.Mxr.Classes
                 frame += frameRepeats + length;
             }
 
-            return string.Join(" + ", counts) + Environment.NewLine + destination.ToString();
+            return Environment.NewLine + destination.ToString();
         }
 
         private static void ReadBitArray(ObjectReader objectReader, StringBuilder destination, AnimationField field, List<int> counts, int count)
