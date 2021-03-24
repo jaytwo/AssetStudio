@@ -51,12 +51,6 @@ namespace AssetStudio.Mxr.Classes
                         throw new InvalidDataException();
                     return true;
 
-                case TrackField.UnknownArray35:
-                    var ints = ReadArray(objectReader, fieldValues, field, s => objectReader.ReadInt32());
-                    if (!ints.EndsWith(" "))
-                        value = ints.Length.ToString();
-                    break;
-
                 case TrackField.UnknownByte41:
                     fieldValues[field] = objectReader.ReadByte();
                     break;
@@ -94,38 +88,17 @@ namespace AssetStudio.Mxr.Classes
 
                 case TrackField.UnknownArray33:
                 case TrackField.UnknownArray34:
+                case TrackField.UnknownArray35:
                 case TrackField.UnknownArray37:
                 case TrackField.UnknownArray38:
-                    var section = field;
-                    var counts = new List<int>();
-                    var txt = string.Empty;
-
-                    while (true)
-                    {
-                        counts.Add(0);
-                        txt += ReadArray(objectReader, fieldValues, section, s =>
-                        {
-                            counts[counts.Count - 1]++;
-                            return (section == TrackField.UnknownArray34 || section == TrackField.UnknownArray35) ?
-                                objectReader.ReadInt32() : objectReader.ReadInt64();
-                        });
-
-                        txt += Environment.NewLine;
-                        section = (TrackField)objectReader.ReadByte();
-
-                        if (section != TrackField.UnknownArray33 &&
-                            section != TrackField.UnknownArray34 &&
-                            section != TrackField.UnknownArray35 &&
-                            section != TrackField.UnknownArray37 &&
-                            section != TrackField.UnknownArray38 &&
-                            section != TrackField.UnknownArray42)
-                        {
-                            objectReader.BaseStream.Position--;
-                            break;
-                        }
-                    }
-
-                    value = string.Join(" + ", counts) + $" ({txt.Length})";
+                case TrackField.UnknownArray42:
+                    if (objectReader.ReadByte() != 0)
+                        throw new InvalidDataException();
+                    var ints = Enumerable.Range(0, objectReader.ReadInt32())
+                        .Select(i => (field == TrackField.UnknownArray34 || field == TrackField.UnknownArray35) ?
+                            objectReader.ReadInt32() : objectReader.ReadInt64())
+                        .ToList();
+                    value = ints.Any() ? $"{ints.Count} {{\n    {string.Join(", ", ints)}\n}}" : "{ }";
                     break;
 
                 case TrackField.Type:
@@ -142,24 +115,6 @@ namespace AssetStudio.Mxr.Classes
 
             _infoText += $"{field} = {value ?? fieldValues[field].ToString()}\n";
             return true;
-        }
-
-        private string ReadArray(BinaryReader objectReader, Dictionary<TrackField, int> fieldValues, TrackField field, Func<BinaryReader, object> read)
-        {
-            var header = objectReader.ReadByte();
-            if (header != 0 && header != 255)
-                throw new InvalidDataException();
-
-            fieldValues[field] = objectReader.ReadInt32();
-            if (header == 255)
-                fieldValues[field] = 0;
-
-            var items = Enumerable.Range(0, fieldValues[field])
-                .Select(i => read(objectReader))
-                .ToArray();
-
-            return $"Section {(int)field}" + Environment.NewLine +
-                "    Objects[" + items.Length + "] = " + string.Join(", ", items);
         }
     }
 }

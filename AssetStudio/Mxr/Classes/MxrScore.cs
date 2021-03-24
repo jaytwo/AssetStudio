@@ -37,18 +37,10 @@ namespace AssetStudio.Mxr.Classes
                     return false;
 
                 case ScoreField.UnknownArray33:
-                    var header = objectReader.ReadByte();
-                    if (header != 0 && header != 255)
+                    if (objectReader.ReadByte() != 0)
                         throw new InvalidDataException();
 
-                    fieldValues[field] = objectReader.ReadInt32();
-                    if (header == 255)
-                        fieldValues[field] = 0;
-
-                    var bytes = Enumerable.Range(0, fieldValues[field])
-                        .Select(i => objectReader.ReadByte())
-                        .ToList();
-
+                    var bytes = Enumerable.Range(0, objectReader.ReadInt32()).Select(i => objectReader.ReadByte()).ToList();
                     _infoText += $"{field}: {bytes.Count} {{\n    {string.Join(",", bytes)}\n}}\n";
                     return true;
 
