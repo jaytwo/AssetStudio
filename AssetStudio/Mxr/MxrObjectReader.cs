@@ -75,6 +75,6 @@ namespace AssetStudio.Mxr
         }
 
         public static string ReadString(ObjectReader objectReader) =>
-            Encoding.GetEncoding(932).GetString(objectReader.ReadBytes(objectReader.ReadInt32()));
+            ((MxrSerializedFile)objectReader.assetsFile).StringSubstituter.Read(objectReader);
     }
 }

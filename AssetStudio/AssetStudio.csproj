@@ -164,6 +164,7 @@
     <Compile Include="Mxr\MxrClassIDType.cs" />
     <Compile Include="Mxr\MxrSerializedFile.cs" />
     <Compile Include="Mxr\MxrObjectReader.cs" />
+    <Compile Include="Mxr\MxrStringSubstituter.cs" />
     <Compile Include="ObjectInfo.cs" />
     <Compile Include="ObjectReader.cs" />
     <Compile Include="Progress.cs" />

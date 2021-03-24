@@ -8,11 +8,15 @@ namespace AssetStudio.Mxr
 {
     class MxrSerializedFile : SerializedFile
     {
+        public MxrStringSubstituter StringSubstituter { get; private set; }
+
         public MxrSerializedFile(AssetsManager assetsManager, string fullName, EndianBinaryReader reader)
             : base(assetsManager, fullName, reader) { }
 
         protected override void Read()
         {
+            StringSubstituter = new MxrStringSubstituter(fullName);
+
             using (var stream1 = Decompress(23, out var bytesRead))
             {
                 header = new SerializedFileHeader();
