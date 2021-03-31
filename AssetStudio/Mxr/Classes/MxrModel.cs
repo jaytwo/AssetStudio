@@ -5,17 +5,18 @@ using System.Linq;
 
 namespace AssetStudio.Mxr.Classes
 {
-    class Group : Dictionary<ModelField, object>
+    class MxrSubMesh : SubMesh
     {
-        public List<Group> TextureGroup { get; set; }
+        public Dictionary<ModelField, object> Properties { get; } = new Dictionary<ModelField, object>();
+        public List<MxrSubMesh> TextureGroup { get; set; }
     }
 
     class MxrModel : Mesh, IMxrPropertyInfo
     {
         private short[] _faceGroups;
-        private readonly List<Group> _groups = new List<Group>();
+        private readonly List<MxrSubMesh> _subMeshes = new List<MxrSubMesh>();
 
-        private Group _group;
+        private MxrSubMesh _subMesh;
 
         public string InfoText { get; private set; }
 
@@ -32,46 +33,47 @@ namespace AssetStudio.Mxr.Classes
             switch (field)
             {
                 case ModelField.End:
+                    m_SubMeshes = _subMeshes.ToArray();
                     return false;
 
                 case ModelField.UnknownMarker19:
                     return true;
 
                 case ModelField.UnknownShort150:
-                    _group.Add(field, objectReader.ReadInt16());
+                    _subMesh.Properties.Add(field, objectReader.ReadInt16());
                     return true;
 
                 case ModelField.UnknownArray22:
-                    var unknown22 = objectReader.ReadBytes((int)_group[ModelField.VertexCount]);
-                    _group.Add(field, unknown22.Count());
+                    var unknown22 = objectReader.ReadBytes((int)_subMesh.Properties[ModelField.VertexCount]);
+                    _subMesh.Properties.Add(field, unknown22.Count());
                     return true;
 
                 case ModelField.Vertices:
-                    m_VertexCount = (int)_group[ModelField.VertexCount];
+                    m_VertexCount = (int)_subMesh.Properties[ModelField.VertexCount];
                     m_Vertices = objectReader.ReadSingleArray(3 * m_VertexCount);
                     return true;
 
                 case ModelField.FacesSingle:
-                    _group[field] = objectReader.ReadByte();
-                    var indices = objectReader.ReadBytes((int)_group[ModelField.IndexCount]);
+                    _subMesh.Properties[field] = objectReader.ReadByte();
+                    var indices = objectReader.ReadBytes((int)_subMesh.Properties[ModelField.IndexCount]);
                     UnpackFaces(indices.Select(b => (ushort)b).ToArray());
                     return true;
 
                 case ModelField.FacesDouble:
-                    UnpackFaces(Enumerable.Range(0, (int)_group[ModelField.IndexCount])
+                    UnpackFaces(Enumerable.Range(0, (int)_subMesh.Properties[ModelField.IndexCount])
                         .Select(i => objectReader.ReadUInt16()).ToArray());
                     return true;
 
                 case ModelField.FaceGroups34:
-                    if ((int)_group[ModelField.IndexCount] != 0)
-                        _faceGroups = Enumerable.Range(0, (int)_group[ModelField.FaceCount])
+                    if ((int)_subMesh.Properties[ModelField.IndexCount] != 0)
+                        _faceGroups = Enumerable.Range(0, (int)_subMesh.Properties[ModelField.FaceCount])
                             .Select(i => objectReader.ReadInt16())
                             .ToArray();
                     return true;
 
                 case ModelField.FaceGroups36:
                     var bitsPerItem = objectReader.ReadByte();
-                    var byteCount = (int)_group[ModelField.FaceCount] * bitsPerItem / 32.0;
+                    var byteCount = (int)_subMesh.Properties[ModelField.FaceCount] * bitsPerItem / 32.0;
                     var faceGroups = objectReader.ReadBytes((int)Math.Ceiling(byteCount));
                     if (bitsPerItem == 16)
                         faceGroups = faceGroups.SelectMany(b => new[]
@@ -87,11 +89,11 @@ namespace AssetStudio.Mxr.Classes
                     return true;
 
                 case ModelField.UnknownArray113:
-                    _group.Add(field, objectReader.ReadBytes(12));
+                    _subMesh.Properties.Add(field, objectReader.ReadBytes(12));
                     return true;
 
                 case ModelField.UnknownArray115:
-                    _group.Add(field, Enumerable.Range(0, 6)
+                    _subMesh.Properties.Add(field, Enumerable.Range(0, 6)
                         .Select(i => objectReader.ReadUInt32())
                         .Where(i => i != uint.MaxValue)
                         .ToArray());
@@ -101,14 +103,14 @@ namespace AssetStudio.Mxr.Classes
                 case ModelField.MaterialAmbient:
                 case ModelField.MaterialEmissive:
                 case ModelField.MaterialSpecular:
-                    _group.Add(field, Enumerable.Range(0, 4)
+                    _subMesh.Properties.Add(field, Enumerable.Range(0, 4)
                         .Select(i => objectReader.ReadSingle())
                         .ToArray());
                     return true;
 
                 case ModelField.UnknownShort149:
                 case ModelField.UnknownShort151:
-                    _group.Add(field, objectReader.ReadInt16());
+                    _subMesh.Properties.Add(field, objectReader.ReadInt16());
                     return true;
 
                 case ModelField.FaceCount:
@@ -135,9 +137,9 @@ namespace AssetStudio.Mxr.Classes
                 case ModelField.UnknownInt200:
                 case ModelField.UnknownInt201:
                 case ModelField.UnknownInt202:
-                    if (_group == null || _group.ContainsKey(field))
-                        _groups.Add(_group = new Group());
-                    _group.Add(field, objectReader.ReadInt32());
+                    if (_subMesh == null || _subMesh.Properties.ContainsKey(field))
+                        _subMeshes.Add(_subMesh = new MxrSubMesh());
+                    _subMesh.Properties.Add(field, objectReader.ReadInt32());
                     return true;
 
                 case ModelField.UnknownFloat148:
@@ -150,11 +152,11 @@ namespace AssetStudio.Mxr.Classes
                 case ModelField.TextureRotateZ:
                 case ModelField.UnknownFloat196:
                 case ModelField.UnknownFloat197:
-                    _group.Add(field, objectReader.ReadSingle());
+                    _subMesh.Properties.Add(field, objectReader.ReadSingle());
                     return true;
 
                 case ModelField.GroupName:
-                    _group.Add(field, _groups.Count + " " + MxrObjectReader.ReadString(objectReader));
+                    _subMesh.Properties.Add(field, _subMeshes.Count + " " + MxrObjectReader.ReadString(objectReader));
                     return true;
 
                 default:
@@ -165,22 +167,21 @@ namespace AssetStudio.Mxr.Classes
         private void UnpackFaces(ushort[] indices)
         {
             var i = 0;
-            m_Indices = new List<uint>();
 
             while (i < indices.Length)
             {
                 var face = Enumerable.Range(0, indices[i] + 1).Select(j => indices[i++]).ToArray();
 
-                m_Indices.Add(face[1]);
-                m_Indices.Add(face[2]);
-                m_Indices.Add(face[3]);
+                _subMesh.indices.Add(face[1]);
+                _subMesh.indices.Add(face[2]);
+                _subMesh.indices.Add(face[3]);
 
                 // Split quads into triangles
                 if (face[0] == 4)
                 {
-                    m_Indices.Add(face[1]);
-                    m_Indices.Add(face[3]);
-                    m_Indices.Add(face[4]);
+                    _subMesh.indices.Add(face[1]);
+                    _subMesh.indices.Add(face[3]);
+                    _subMesh.indices.Add(face[4]);
                 }
             }
         }

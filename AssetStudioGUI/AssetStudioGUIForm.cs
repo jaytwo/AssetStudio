@@ -1053,13 +1053,7 @@ namespace AssetStudioGUI
                 modelMatrixData = Matrix4.CreateTranslation(-offset) * Matrix4.CreateScale(2f / d);
                 #endregion
                 #region Indicies
-                indiceData = new int[m_Mesh.m_Indices.Count];
-                for (int i = 0; i < m_Mesh.m_Indices.Count; i = i + 3)
-                {
-                    indiceData[i] = (int)m_Mesh.m_Indices[i];
-                    indiceData[i + 1] = (int)m_Mesh.m_Indices[i + 1];
-                    indiceData[i + 2] = (int)m_Mesh.m_Indices[i + 2];
-                }
+                indiceData = m_Mesh.m_SubMeshes.SelectMany(m => m.indices).Select(i => (int)i).ToArray();
                 #endregion
                 #region Normals
                 if (m_Mesh.m_Normals != null && m_Mesh.m_Normals.Length > 0)
@@ -1087,7 +1081,7 @@ namespace AssetStudioGUI
                     normal2Data[i] = Vector3.Zero;
                     normalCalculatedCount[i] = 0;
                 }
-                for (int i = 0; i < m_Mesh.m_Indices.Count; i = i + 3)
+                for (int i = 0; i < indiceData.Length; i = i + 3)
                 {
                     Vector3 dir1 = vertexData[indiceData[i + 1]] - vertexData[indiceData[i]];
                     Vector3 dir2 = vertexData[indiceData[i + 2]] - vertexData[indiceData[i]];

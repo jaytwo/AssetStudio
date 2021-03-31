@@ -417,6 +417,10 @@ namespace AssetStudio
         public uint vertexCount;
         public AABB localAABB;
 
+        public List<uint> indices = new List<uint>();
+
+        protected SubMesh() { }
+
         public SubMesh(ObjectReader reader)
         {
             var version = reader.version;
@@ -469,8 +473,6 @@ namespace AssetStudio
         private VertexData m_VertexData;
         private CompressedMesh m_CompressedMesh;
         private StreamingInfo m_StreamData;
-
-        public List<uint> m_Indices = new List<uint>();
 
         public Mesh(ObjectReader reader) : base(reader)
         {
@@ -1068,9 +1070,9 @@ namespace AssetStudio
                 {
                     for (int i = 0; i < indexCount; i += 3)
                     {
-                        m_Indices.Add(m_IndexBuffer[firstIndex + i]);
-                        m_Indices.Add(m_IndexBuffer[firstIndex + i + 1]);
-                        m_Indices.Add(m_IndexBuffer[firstIndex + i + 2]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + i]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + i + 1]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + i + 2]);
                     }
                 }
                 else if (version[0] < 4 || topology == GfxPrimitiveType.kPrimitiveTriangleStrip)
@@ -1090,15 +1092,15 @@ namespace AssetStudio
                         // do the winding flip-flop of strips :
                         if ((i & 1) == 1)
                         {
-                            m_Indices.Add(b);
-                            m_Indices.Add(a);
+                            m_SubMesh.indices.Add(b);
+                            m_SubMesh.indices.Add(a);
                         }
                         else
                         {
-                            m_Indices.Add(a);
-                            m_Indices.Add(b);
+                            m_SubMesh.indices.Add(a);
+                            m_SubMesh.indices.Add(b);
                         }
-                        m_Indices.Add(c);
+                        m_SubMesh.indices.Add(c);
                         triIndex += 3;
                     }
                     //fix indexCount
@@ -1108,12 +1110,12 @@ namespace AssetStudio
                 {
                     for (int q = 0; q < indexCount; q += 4)
                     {
-                        m_Indices.Add(m_IndexBuffer[firstIndex + q]);
-                        m_Indices.Add(m_IndexBuffer[firstIndex + q + 1]);
-                        m_Indices.Add(m_IndexBuffer[firstIndex + q + 2]);
-                        m_Indices.Add(m_IndexBuffer[firstIndex + q]);
-                        m_Indices.Add(m_IndexBuffer[firstIndex + q + 2]);
-                        m_Indices.Add(m_IndexBuffer[firstIndex + q + 3]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + q]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + q + 1]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + q + 2]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + q]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + q + 2]);
+                        m_SubMesh.indices.Add(m_IndexBuffer[firstIndex + q + 3]);
                     }
                     //fix indexCount
                     m_SubMesh.indexCount = indexCount / 2 * 3;

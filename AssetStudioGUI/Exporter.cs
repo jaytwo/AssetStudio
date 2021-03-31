@@ -214,9 +214,10 @@ namespace AssetStudioGUI
                 sb.AppendLine($"g {m_Mesh.m_Name}_{i}");
                 int indexCount = (int)m_Mesh.m_SubMeshes[i].indexCount;
                 var end = sum + indexCount / 3;
+                var indices = m_Mesh.m_SubMeshes.SelectMany(m => m.indices).ToArray();
                 for (int f = sum; f < end; f++)
                 {
-                    sb.AppendFormat("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\r\n", m_Mesh.m_Indices[f * 3 + 2] + 1, m_Mesh.m_Indices[f * 3 + 1] + 1, m_Mesh.m_Indices[f * 3] + 1);
+                    sb.AppendFormat("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}\r\n", indices[f * 3 + 2] + 1, indices[f * 3 + 1] + 1, indices[f * 3] + 1);
                 }
                 sum = end;
             }

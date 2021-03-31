@@ -395,13 +395,14 @@ namespace AssetStudio
                 //Face
                 iSubmesh.FaceList = new List<ImportedFace>(numFaces);
                 var end = firstFace + numFaces;
+                var indices = mesh.m_SubMeshes.SelectMany(m => m.indices).ToArray();
                 for (int f = firstFace; f < end; f++)
                 {
                     var face = new ImportedFace();
                     face.VertexIndices = new int[3];
-                    face.VertexIndices[0] = (int)(mesh.m_Indices[f * 3 + 2] - submesh.firstVertex);
-                    face.VertexIndices[1] = (int)(mesh.m_Indices[f * 3 + 1] - submesh.firstVertex);
-                    face.VertexIndices[2] = (int)(mesh.m_Indices[f * 3] - submesh.firstVertex);
+                    face.VertexIndices[0] = (int)(indices[f * 3 + 2] - submesh.firstVertex);
+                    face.VertexIndices[1] = (int)(indices[f * 3 + 1] - submesh.firstVertex);
+                    face.VertexIndices[2] = (int)(indices[f * 3] - submesh.firstVertex);
                     iSubmesh.FaceList.Add(face);
                 }
                 firstFace = end;
