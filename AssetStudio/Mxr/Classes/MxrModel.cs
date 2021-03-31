@@ -10,12 +10,14 @@ namespace AssetStudio.Mxr.Classes
         public List<Group> TextureGroup { get; set; }
     }
 
-    class MxrModel : Mesh
+    class MxrModel : Mesh, IMxrPropertyInfo
     {
         private short[] _faceGroups;
         private readonly List<Group> _groups = new List<Group>();
 
         private Group _group;
+
+        public string InfoText { get; private set; }
 
         public MxrModel(ObjectReader objectReader)
             : base(objectReader) { }
@@ -33,7 +35,6 @@ namespace AssetStudio.Mxr.Classes
                     return false;
 
                 case ModelField.UnknownMarker19:
-                case ModelField.UnknownMarker34:
                     return true;
 
                 case ModelField.UnknownShort150:
@@ -59,19 +60,16 @@ namespace AssetStudio.Mxr.Classes
                 case ModelField.FacesDouble:
                     UnpackFaces(Enumerable.Range(0, (int)_group[ModelField.IndexCount])
                         .Select(i => objectReader.ReadUInt16()).ToArray());
-
-                    if ((int)_group[ModelField.IndexCount] != 0)
-                    {
-                        if (objectReader.ReadByte() == 34)
-                            _faceGroups = Enumerable.Range(0, (int)_group[ModelField.FaceCount])
-                                .Select(i => objectReader.ReadInt16())
-                                .ToArray();
-                        else
-                            objectReader.BaseStream.Position--;
-                    }
                     return true;
 
-                case ModelField.FaceGroups:
+                case ModelField.FaceGroups34:
+                    if ((int)_group[ModelField.IndexCount] != 0)
+                        _faceGroups = Enumerable.Range(0, (int)_group[ModelField.FaceCount])
+                            .Select(i => objectReader.ReadInt16())
+                            .ToArray();
+                    return true;
+
+                case ModelField.FaceGroups36:
                     var bitsPerItem = objectReader.ReadByte();
                     var byteCount = (int)_group[ModelField.FaceCount] * bitsPerItem / 32.0;
                     var faceGroups = objectReader.ReadBytes((int)Math.Ceiling(byteCount));
@@ -173,17 +171,16 @@ namespace AssetStudio.Mxr.Classes
             {
                 var face = Enumerable.Range(0, indices[i] + 1).Select(j => indices[i++]).ToArray();
 
-                // Reverse winding direction
                 m_Indices.Add(face[1]);
-                m_Indices.Add(face[3]);
                 m_Indices.Add(face[2]);
+                m_Indices.Add(face[3]);
 
                 // Split quads into triangles
                 if (face[0] == 4)
                 {
-                    m_Indices.Add(face[4]);
-                    m_Indices.Add(face[3]);
                     m_Indices.Add(face[1]);
+                    m_Indices.Add(face[3]);
+                    m_Indices.Add(face[4]);
                 }
             }
         }
