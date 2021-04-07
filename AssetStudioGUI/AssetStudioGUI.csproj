@@ -75,6 +75,7 @@
     <Compile Include="Components\MeshGLControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="Components\MeshGLShaders.cs" />
     <Compile Include="Components\OpenFolderDialog.cs" />
     <Compile Include="Components\TreeViewExtensions.cs" />
     <Compile Include="Components\TypeTreeItem.cs" />

@@ -44,18 +44,18 @@ namespace AssetStudioGUI
             ChangeGLSize(Size);
             GL.ClearColor(System.Drawing.Color.CadetBlue);
             pgmID = GL.CreateProgram();
-            LoadShader("vs", ShaderType.VertexShader, pgmID, out int vsID);
-            LoadShader("fs", ShaderType.FragmentShader, pgmID, out int fsID);
+            LoadShader(MeshGLShaders.Vertex, ShaderType.VertexShader, pgmID);
+            LoadShader(MeshGLShaders.Fragment, ShaderType.FragmentShader, pgmID);
             GL.LinkProgram(pgmID);
 
             pgmColorID = GL.CreateProgram();
-            LoadShader("vs", ShaderType.VertexShader, pgmColorID, out vsID);
-            LoadShader("fsColor", ShaderType.FragmentShader, pgmColorID, out fsID);
+            LoadShader(MeshGLShaders.Vertex, ShaderType.VertexShader, pgmColorID);
+            LoadShader(MeshGLShaders.FragmentColor, ShaderType.FragmentShader, pgmColorID);
             GL.LinkProgram(pgmColorID);
 
             pgmBlackID = GL.CreateProgram();
-            LoadShader("vs", ShaderType.VertexShader, pgmBlackID, out vsID);
-            LoadShader("fsBlack", ShaderType.FragmentShader, pgmBlackID, out fsID);
+            LoadShader(MeshGLShaders.Vertex, ShaderType.VertexShader, pgmBlackID);
+            LoadShader(MeshGLShaders.FragmentBlack, ShaderType.FragmentShader, pgmBlackID);
             GL.LinkProgram(pgmBlackID);
 
             attributeVertexPosition = GL.GetAttribLocation(pgmID, "vertexPosition");
@@ -67,11 +67,10 @@ namespace AssetStudioGUI
             glControlLoaded = true;
         }
 
-        private static void LoadShader(string filename, ShaderType type, int program, out int address)
+        private static void LoadShader(string source, ShaderType type, int program)
         {
-            address = GL.CreateShader(type);
-            var str = (string)Properties.Resources.ResourceManager.GetObject(filename);
-            GL.ShaderSource(address, str);
+            var address = GL.CreateShader(type);
+            GL.ShaderSource(address, source);
             GL.CompileShader(address);
             GL.AttachShader(program, address);
             GL.DeleteShader(address);
