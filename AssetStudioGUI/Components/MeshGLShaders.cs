@@ -5,6 +5,7 @@
         public const string Fragment = @"#version 140
 
 		in vec3 normal;
+		in vec4 color;
 		out vec4 outputColor;
 
 		void main()
@@ -14,10 +15,10 @@
 			vec2 ContributionWeightsSqrt = vec2(0.5, 0.5f) + vec2(0.5f, -0.5f) * unitNormal.y;
 			vec2 ContributionWeights = ContributionWeightsSqrt * ContributionWeightsSqrt;
 
-			vec3 color = nDotProduct * vec3(1, 0.957, 0.839) / 3.14159;
-			color += vec3(0.779, 0.716, 0.453) * ContributionWeights.y;
-			color += vec3(0.368, 0.477, 0.735) * ContributionWeights.x;
-			outputColor = vec4(sqrt(color), 1);
+			outputColor = nDotProduct * color / 3.14159;
+			outputColor += vec4(0.779, 0.716, 0.453, 1.0) * ContributionWeights.y;
+			outputColor += vec4(0.368, 0.477, 0.735, 1.0) * ContributionWeights.x;
+			outputColor = sqrt(outputColor);
 		}";
 
 		public const string FragmentBlack = @"#version 140
@@ -43,7 +44,7 @@
 
 		in vec3 vertexPosition;
 		in vec3 normalDirection;
-		in vec4 vertexColor;
+		uniform vec4 materialColor;
 		uniform mat4 modelMatrix;
 		uniform mat4 viewMatrix;
 		uniform mat4 projMatrix;
@@ -54,7 +55,7 @@
 		{
 			gl_Position = projMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);
 			normal = normalDirection;
-			color = vertexColor; 
+			color = materialColor; 
 		}";
     }
 }

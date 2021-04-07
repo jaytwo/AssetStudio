@@ -416,7 +416,7 @@ namespace AssetStudio
         public uint firstVertex;
         public uint vertexCount;
         public AABB localAABB;
-
+        public float[] color;
         public List<uint> indices = new List<uint>();
 
         protected SubMesh() { }

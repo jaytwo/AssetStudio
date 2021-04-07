@@ -6,7 +6,6 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Vector3 = OpenTK.Vector3;
-using Vector4 = OpenTK.Vector4;
 
 namespace AssetStudioGUI
 {
@@ -17,7 +16,7 @@ namespace AssetStudioGUI
         private int pgmID, pgmColorID, pgmBlackID;
         private int attributeVertexPosition;
         private int attributeNormalDirection;
-        private int attributeVertexColor;
+        private int uniformMaterialColor;
         private int uniformModelMatrix;
         private int uniformViewMatrix;
         private int uniformProjMatrix;
@@ -25,7 +24,6 @@ namespace AssetStudioGUI
         private Vector3[] vertexData;
         private Vector3[] normalData;
         private Vector3[] normal2Data;
-        private Vector4[] colorData;
         private Matrix4 modelMatrixData;
         private Matrix4 viewMatrixData;
         private Matrix4 projMatrixData;
@@ -60,7 +58,7 @@ namespace AssetStudioGUI
 
             attributeVertexPosition = GL.GetAttribLocation(pgmID, "vertexPosition");
             attributeNormalDirection = GL.GetAttribLocation(pgmID, "normalDirection");
-            attributeVertexColor = GL.GetAttribLocation(pgmColorID, "vertexColor");
+            uniformMaterialColor = GL.GetUniformLocation(pgmID, "materialColor");
             uniformModelMatrix = GL.GetUniformLocation(pgmID, "modelMatrix");
             uniformViewMatrix = GL.GetUniformLocation(pgmID, "viewMatrix");
             uniformProjMatrix = GL.GetUniformLocation(pgmID, "projMatrix");
@@ -76,44 +74,26 @@ namespace AssetStudioGUI
             GL.DeleteShader(address);
         }
 
-        private static void CreateVBO(out int vboAddress, Vector3[] data, int address)
+        private static void CreateVBO(Vector3[] data, int address)
         {
-            GL.GenBuffers(1, out vboAddress);
+            GL.GenBuffers(1, out int vboAddress);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vboAddress);
-            GL.BufferData(BufferTarget.ArrayBuffer,
-                                    (IntPtr)(data.Length * Vector3.SizeInBytes),
-                                    data,
-                                    BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(data.Length * Vector3.SizeInBytes), data, BufferUsageHint.StaticDraw);
             GL.VertexAttribPointer(address, 3, VertexAttribPointerType.Float, false, 0, 0);
             GL.EnableVertexAttribArray(address);
         }
 
-        private static void CreateVBO(out int vboAddress, Vector4[] data, int address)
+        private static void CreateVBO(Matrix4 data, int address)
         {
-            GL.GenBuffers(1, out vboAddress);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vboAddress);
-            GL.BufferData(BufferTarget.ArrayBuffer,
-                                    (IntPtr)(data.Length * Vector4.SizeInBytes),
-                                    data,
-                                    BufferUsageHint.StaticDraw);
-            GL.VertexAttribPointer(address, 4, VertexAttribPointerType.Float, false, 0, 0);
-            GL.EnableVertexAttribArray(address);
-        }
-
-        private static void CreateVBO(out int vboAddress, Matrix4 data, int address)
-        {
-            GL.GenBuffers(1, out vboAddress);
+            GL.GenBuffers(1, out int vboAddress);
             GL.UniformMatrix4(address, false, ref data);
         }
 
-        private static void CreateEBO(out int address, int[] data)
+        private static void CreateEBO(int[] data)
         {
-            GL.GenBuffers(1, out address);
+            GL.GenBuffers(1, out int address);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, address);
-            GL.BufferData(BufferTarget.ElementArrayBuffer,
-                            (IntPtr)(data.Length * sizeof(int)),
-                            data,
-                            BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(data.Length * sizeof(int)), data, BufferUsageHint.StaticDraw);
         }
 
         public void CreateVAO()
@@ -121,21 +101,17 @@ namespace AssetStudioGUI
             GL.DeleteVertexArray(vao);
             GL.GenVertexArrays(1, out vao);
             GL.BindVertexArray(vao);
-            CreateVBO(out var vboPositions, vertexData, attributeVertexPosition);
+            CreateVBO(vertexData, attributeVertexPosition);
+
             if (normalMode == 0)
-            {
-                CreateVBO(out var vboNormals, normal2Data, attributeNormalDirection);
-            }
-            else
-            {
-                if (normalData != null)
-                    CreateVBO(out var vboNormals, normalData, attributeNormalDirection);
-            }
-            CreateVBO(out var vboColors, colorData, attributeVertexColor);
-            CreateVBO(out var vboModelMatrix, modelMatrixData, uniformModelMatrix);
-            CreateVBO(out var vboViewMatrix, viewMatrixData, uniformViewMatrix);
-            CreateVBO(out var vboProjMatrix, projMatrixData, uniformProjMatrix);
-            CreateEBO(out var eboElements, indiceData);
+                CreateVBO(normal2Data, attributeNormalDirection);
+            else if (normalData != null)
+                CreateVBO(normalData, attributeNormalDirection);
+            
+            CreateVBO(modelMatrixData, uniformModelMatrix);
+            CreateVBO(viewMatrixData, uniformViewMatrix);
+            CreateVBO(projMatrixData, uniformProjMatrix);
+            CreateEBO(indiceData);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
         }
@@ -249,40 +225,6 @@ namespace AssetStudioGUI
                     normal2Data[i] /= normalCalculatedCount[i];
             }
             
-            // Colors
-            if (m_Mesh.m_Colors != null && m_Mesh.m_Colors.Length == m_Mesh.m_VertexCount * 3)
-            {
-                colorData = new Vector4[m_Mesh.m_VertexCount];
-                for (int c = 0; c < m_Mesh.m_VertexCount; c++)
-                {
-                    colorData[c] = new Vector4(
-                        m_Mesh.m_Colors[c * 3],
-                        m_Mesh.m_Colors[c * 3 + 1],
-                        m_Mesh.m_Colors[c * 3 + 2],
-                        1.0f);
-                }
-            }
-            else if (m_Mesh.m_Colors != null && m_Mesh.m_Colors.Length == m_Mesh.m_VertexCount * 4)
-            {
-                colorData = new Vector4[m_Mesh.m_VertexCount];
-                for (int c = 0; c < m_Mesh.m_VertexCount; c++)
-                {
-                    colorData[c] = new Vector4(
-                    m_Mesh.m_Colors[c * 4],
-                    m_Mesh.m_Colors[c * 4 + 1],
-                    m_Mesh.m_Colors[c * 4 + 2],
-                    m_Mesh.m_Colors[c * 4 + 3]);
-                }
-            }
-            else
-            {
-                colorData = new Vector4[m_Mesh.m_VertexCount];
-                for (int c = 0; c < m_Mesh.m_VertexCount; c++)
-                {
-                    colorData[c] = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
-                }
-            }
-            
             Visible = true;
             CreateVAO();
         }
@@ -325,6 +267,7 @@ namespace AssetStudioGUI
             var start = 0;
             foreach (var subMesh in mesh.m_SubMeshes)
             {
+                GL.Uniform4(uniformMaterialColor, 1, subMesh.color);
                 GL.DrawRangeElements(PrimitiveType.Triangles, start, indiceData.Length, start + subMesh.indices.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
                 start += subMesh.indices.Count;
             }

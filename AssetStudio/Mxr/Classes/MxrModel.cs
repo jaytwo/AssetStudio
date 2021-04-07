@@ -112,8 +112,11 @@ namespace AssetStudio.Mxr.Classes
                         .ToArray());
                     return true;
 
-                case ModelField.MaterialPower:
                 case ModelField.MaterialAmbient:
+                    _subMesh.color = Enumerable.Range(0, 4).Select(i => objectReader.ReadSingle()).ToArray();
+                    return true;
+
+                case ModelField.MaterialPower:
                 case ModelField.MaterialEmissive:
                 case ModelField.MaterialSpecular:
                     _subMesh.Properties.Add(field, Enumerable.Range(0, 4)
