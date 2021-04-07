@@ -13,9 +13,11 @@ namespace AssetStudio.Mxr.Classes
 
     class MxrModel : Mesh, IMxrPropertyInfo
     {
-        private short[] _faceGroups;
         private readonly List<MxrSubMesh> _subMeshes = new List<MxrSubMesh>();
+        private readonly List<uint> _indices = new List<uint>();
+        private readonly List<List<int>> _indicesByFace = new List<List<int>>();
 
+        private short[] _faceGroups;
         private MxrSubMesh _subMesh;
 
         public string InfoText { get; private set; }
@@ -34,6 +36,17 @@ namespace AssetStudio.Mxr.Classes
             {
                 case ModelField.End:
                     m_SubMeshes = _subMeshes.ToArray();
+                    if (_faceGroups == null)
+                        m_SubMeshes.Single().indices = _indices;
+                    else
+                        for (int i = 0; i < _faceGroups.Length; i++)
+                            foreach (var j in _indicesByFace[i])
+                            {
+                                var subMeshIndices = m_SubMeshes[_faceGroups[i]].indices;
+                                subMeshIndices.Add(_indices[j + 0]);
+                                subMeshIndices.Add(_indices[j + 1]);
+                                subMeshIndices.Add(_indices[j + 2]);
+                            }
                     return false;
 
                 case ModelField.UnknownMarker19:
@@ -172,16 +185,18 @@ namespace AssetStudio.Mxr.Classes
             {
                 var face = Enumerable.Range(0, indices[i] + 1).Select(j => indices[i++]).ToArray();
 
-                _subMesh.indices.Add(face[1]);
-                _subMesh.indices.Add(face[2]);
-                _subMesh.indices.Add(face[3]);
+                _indicesByFace.Add(new List<int> { _indices.Count });
+                _indices.Add(face[1]);
+                _indices.Add(face[2]);
+                _indices.Add(face[3]);
 
                 // Split quads into triangles
                 if (face[0] == 4)
                 {
-                    _subMesh.indices.Add(face[1]);
-                    _subMesh.indices.Add(face[3]);
-                    _subMesh.indices.Add(face[4]);
+                    _indicesByFace[_indicesByFace.Count - 1].Add(_indices.Count);
+                    _indices.Add(face[1]);
+                    _indices.Add(face[3]);
+                    _indices.Add(face[4]);
                 }
             }
         }

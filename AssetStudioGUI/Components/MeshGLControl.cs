@@ -30,6 +30,7 @@ namespace AssetStudioGUI
         private Matrix4 viewMatrixData;
         private Matrix4 projMatrixData;
         private int[] indiceData;
+        private Mesh mesh;
 
         public int wireFrameMode;
         public int shadeMode;
@@ -158,6 +159,7 @@ namespace AssetStudioGUI
 
         public void PreviewMesh(Mesh m_Mesh)
         {
+            mesh = m_Mesh;
             viewMatrixData = Matrix4.CreateRotationY(-(float)Math.PI / 4) * Matrix4.CreateRotationX(-(float)Math.PI / 6);
             
             // Vertices
@@ -296,31 +298,37 @@ namespace AssetStudioGUI
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
             GL.BindVertexArray(vao);
+
             if (wireFrameMode == 0 || wireFrameMode == 2)
-            {
-                GL.UseProgram(shadeMode == 0 ? pgmID : pgmColorID);
-                GL.UniformMatrix4(uniformModelMatrix, false, ref modelMatrixData);
-                GL.UniformMatrix4(uniformViewMatrix, false, ref viewMatrixData);
-                GL.UniformMatrix4(uniformProjMatrix, false, ref projMatrixData);
-                GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-                GL.DrawElements(BeginMode.Triangles, indiceData.Length, DrawElementsType.UnsignedInt, 0);
-            }
-            //Wireframe
+                DrawElements(shadeMode == 0 ? pgmID : pgmColorID, PolygonMode.Fill);
+
             if (wireFrameMode == 1 || wireFrameMode == 2)
             {
                 GL.Enable(EnableCap.PolygonOffsetLine);
                 GL.PolygonOffset(-1, -1);
-                GL.UseProgram(pgmBlackID);
-                GL.UniformMatrix4(uniformModelMatrix, false, ref modelMatrixData);
-                GL.UniformMatrix4(uniformViewMatrix, false, ref viewMatrixData);
-                GL.UniformMatrix4(uniformProjMatrix, false, ref projMatrixData);
-                GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-                GL.DrawElements(BeginMode.Triangles, indiceData.Length, DrawElementsType.UnsignedInt, 0);
+                DrawElements(pgmBlackID, PolygonMode.Line);
                 GL.Disable(EnableCap.PolygonOffsetLine);
             }
+
             GL.BindVertexArray(0);
             GL.Flush();
             SwapBuffers();
+        }
+
+        private void DrawElements(int program, PolygonMode polygonMode)
+        {
+            GL.UseProgram(program);
+            GL.UniformMatrix4(uniformModelMatrix, false, ref modelMatrixData);
+            GL.UniformMatrix4(uniformViewMatrix, false, ref viewMatrixData);
+            GL.UniformMatrix4(uniformProjMatrix, false, ref projMatrixData);
+            GL.PolygonMode(MaterialFace.FrontAndBack, polygonMode);
+
+            var start = 0;
+            foreach (var subMesh in mesh.m_SubMeshes)
+            {
+                GL.DrawRangeElements(PrimitiveType.Triangles, start, indiceData.Length, start + subMesh.indices.Count, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                start += subMesh.indices.Count;
+            }
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
