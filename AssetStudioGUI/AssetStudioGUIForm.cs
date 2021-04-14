@@ -245,32 +245,7 @@ namespace AssetStudioGUI
 
         private void AssetStudioForm_KeyDown(object sender, KeyEventArgs e)
         {
-            if (glControl1.Visible)
-            {
-                if (e.Control)
-                {
-                    switch (e.KeyCode)
-                    {
-                        case Keys.W:
-                            //Toggle WireFrame
-                            glControl1.wireFrameMode = (glControl1.wireFrameMode + 1) % 3;
-                            glControl1.Invalidate();
-                            break;
-                        case Keys.S:
-                            //Toggle Shade
-                            glControl1.shadeMode = (glControl1.shadeMode + 1) % 2;
-                            glControl1.Invalidate();
-                            break;
-                        case Keys.N:
-                            //Normal mode
-                            glControl1.normalMode = (glControl1.normalMode + 1) % 2;
-                            glControl1.CreateVAO();
-                            glControl1.Invalidate();
-                            break;
-                    }
-                }
-            }
-            else if (previewPanel.Visible)
+            if (previewPanel.Visible)
             {
                 if (e.Control)
                 {
@@ -646,7 +621,7 @@ namespace AssetStudioGUI
 
         private void preview_Resize(object sender, EventArgs e)
         {
-            if (glControl1.glControlLoaded && glControl1.Visible)
+            if (glControl1.Visible)
             {
                 glControl1.ChangeGLSize(glControl1.Size);
                 glControl1.Invalidate();
@@ -988,8 +963,7 @@ namespace AssetStudioGUI
 
                 glControl1.PreviewMesh(m_Mesh);
                 StatusStripUpdate("Using OpenGL Version: " + GL.GetString(StringName.Version) + "\n"
-                                  + "'Mouse Left'=Rotate | 'Mouse Right'=Move | 'Mouse Wheel'=Zoom \n"
-                                  + "'Ctrl W'=Wireframe | 'Ctrl S'=Shade | 'Ctrl N'=ReNormal ");
+                                  + "'Mouse Left'=Rotate | 'Mouse Right'=Move | 'Mouse Wheel'=Zoom ");
             }
             else
             {

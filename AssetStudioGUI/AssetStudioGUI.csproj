@@ -75,7 +75,7 @@
     <Compile Include="Components\MeshGLControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Components\MeshGLShaders.cs" />
+    <Compile Include="Components\MeshGLShader.cs" />
     <Compile Include="Components\OpenFolderDialog.cs" />
     <Compile Include="Components\TreeViewExtensions.cs" />
     <Compile Include="Components\TypeTreeItem.cs" />
@@ -118,6 +118,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Shaders\lighting.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\shader.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -148,6 +154,7 @@
       <Name>AssetStudio</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(SolutionDir)AssetStudioFBXNative\bin\Win32\$(Configuration)\AssetStudioFBXNative.dll" DestinationFolder="$(TargetDir)x86" ContinueOnError="true" />
